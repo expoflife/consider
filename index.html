@@ -1,0 +1,1530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Consider: find someone worth getting to know. A prototype of a private, matchmaker-led introduction service.">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Consider</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one quiet reading column for members (max 720px), a wider ledger for staff; phone gets a bottom tab bar, desktop a top bar. */
+:root{
+  --bg:#F3F0EA; --surface:#FBFAF7; --sunk:#EAE5DC; --ink:#17233A; --muted:#67645D; --line:#DCD5C8;
+  --navy:#1D3253; --navy-soft:#E2E7EF; --on-navy:#F7F4EE; --brass:#94703F;
+  --ok:#36704F; --ok-soft:#E0EDE4; --warn:#94601A; --warn-soft:#F4E9D6; --bad:#9B4136; --bad-soft:#F3E0DC;
+  --display:'Newsreader',Georgia,'Times New Roman',serif;
+  --body:'Figtree',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --r:10px; --shadow:0 1px 2px rgba(23,35,58,.06),0 8px 24px rgba(23,35,58,.06);
+  --fs-xs:.75rem; --fs-sm:.8125rem; --fs-md:.9375rem; --fs-lg:1.125rem; --fs-xl:1.5rem; --fs-2xl:2.125rem;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1524; --surface:#151F33; --sunk:#1B2740; --ink:#ECE6DC; --muted:#A39D92; --line:#2B3854;
+  --navy:#C7D4EA; --navy-soft:#22314F; --on-navy:#0F1830; --brass:#D2AC77;
+  --ok:#86C7A1; --ok-soft:#1C3328; --warn:#E3B06A; --warn-soft:#3A2D19; --bad:#E8968B; --bad-soft:#3C2320;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1524; --surface:#151F33; --sunk:#1B2740; --ink:#ECE6DC; --muted:#A39D92; --line:#2B3854;
+  --navy:#C7D4EA; --navy-soft:#22314F; --on-navy:#0F1830; --brass:#D2AC77;
+  --ok:#86C7A1; --ok-soft:#1C3328; --warn:#E3B06A; --warn-soft:#3A2D19; --bad:#E8968B; --bad-soft:#3C2320;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:var(--fs-md);line-height:1.55;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+h1,h2,h3{font-family:var(--display);font-weight:500;line-height:1.2;text-wrap:balance;margin:0;color:var(--ink)}
+h1{font-size:var(--fs-2xl);letter-spacing:-.01em}
+h2{font-size:var(--fs-xl)}
+h3{font-size:var(--fs-lg)}
+p{margin:0}
+a{color:var(--navy)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px;border-radius:4px}
+.muted{color:var(--muted)} .small{font-size:var(--fs-sm)} .xs{font-size:var(--fs-xs)}
+.eyebrow{font-size:var(--fs-xs);letter-spacing:.12em;text-transform:uppercase;color:var(--brass);font-weight:600}
+.label{font-size:var(--fs-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spread{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:20px;height:60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:baseline;gap:10px;background:none;border:0;padding:0;cursor:pointer;color:var(--ink)}
+.brand b{font-family:var(--display);font-weight:600;font-size:1.45rem;letter-spacing:-.01em;color:var(--navy)}
+.brand span{font-size:var(--fs-sm);color:var(--muted);font-style:italic;font-family:var(--display)}
+.topnav{display:flex;gap:4px;margin-left:auto}
+.topnav button,.tabbar button{border:0;background:none;cursor:pointer;color:var(--muted);font-weight:500}
+.topnav button{padding:8px 12px;border-radius:8px;display:flex;gap:8px;align-items:center}
+.topnav button[aria-current="page"]{color:var(--navy);background:var(--navy-soft)}
+.topnav button:hover{color:var(--ink)}
+.badge-n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--brass);color:var(--surface);font-size:11px;font-weight:700}
+.tabbar{display:none}
+@media (max-width:760px){
+  .brand span{display:none}
+  .topnav{display:none}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+  .tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:6px 0;position:relative}
+  .tabbar button[aria-current="page"]{color:var(--navy)}
+  .tabbar .badge-n{position:absolute;top:0;left:calc(50% + 6px)}
+  .main{padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))!important}
+}
+.tabbar svg,.topnav svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.topnav svg{width:17px;height:17px}
+
+.main{max-width:760px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.main.wide{max-width:1120px}
+.page-head{display:flex;flex-direction:column;gap:8px;margin-bottom:22px}
+.page-head p{color:var(--muted);max-width:62ch}
+
+/* buttons & inputs */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 18px;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:var(--on-navy);font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover{filter:brightness(1.08)}
+.btn[disabled]{opacity:.5;cursor:not-allowed;filter:none}
+.btn.ghost{background:transparent;color:var(--navy);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--navy);filter:none}
+.btn.quiet{background:transparent;border-color:transparent;color:var(--muted);padding:0 10px}
+.btn.quiet:hover{color:var(--ink);filter:none}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:var(--surface)}
+.btn.sm{min-height:34px;padding:0 12px;font-size:var(--fs-sm)}
+.btn.block{width:100%}
+.linkbtn{background:none;border:0;padding:0;color:var(--navy);text-decoration:underline;text-underline-offset:3px;cursor:pointer;font-weight:500}
+input[type=text],input[type=email],input[type=password],input[type=tel],input[type=number],select,textarea{width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+textarea{min-height:96px;resize:vertical;line-height:1.5}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px var(--navy-soft)}
+input[disabled]{opacity:.7}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.field-head label{font-weight:600;font-size:var(--fs-sm)}
+.opt{font-weight:400;color:var(--muted)}
+.help{font-size:var(--fs-sm);color:var(--muted)}
+.err{font-size:var(--fs-sm);color:var(--bad);font-weight:500}
+.has-err input,.has-err select,.has-err textarea,.has-err .chips{border-color:var(--bad)}
+.vis{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-xs);color:var(--muted)}
+.vis select{min-height:28px;padding:2px 24px 2px 8px;font-size:var(--fs-xs);width:auto;border-radius:6px}
+.vis.fixed{padding:3px 8px;border-radius:6px;background:var(--sunk)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:560px){.grid2{grid-template-columns:1fr}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;border-radius:8px}
+.chip{position:relative;cursor:pointer}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:inline-block;padding:6px 12px;border:1px solid var(--line);border-radius:999px;font-size:var(--fs-sm);background:var(--surface);transition:background .15s,border-color .15s}
+.chip input:checked+span{background:var(--navy);border-color:var(--navy);color:var(--on-navy)}
+.chip input:focus-visible+span{outline:2px solid var(--brass);outline-offset:2px}
+.chips.dense .chip span{padding:4px 9px;font-size:var(--fs-xs)}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.scale label{text-align:center}
+.scale .chip span{display:block;border-radius:8px;padding:8px 4px;font-size:var(--fs-xs)}
+.switch{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.switch input{width:20px;height:20px;margin-top:2px;accent-color:var(--navy);flex:none}
+
+/* surfaces */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.panel{border-top:1px solid var(--line);padding-top:20px}
+.banner{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:var(--r);background:var(--navy-soft);color:var(--ink);font-size:var(--fs-sm);margin-bottom:20px}
+.banner.warn{background:var(--warn-soft)} .banner.bad{background:var(--bad-soft)} .banner.ok{background:var(--ok-soft)}
+.banner strong{display:block}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:var(--fs-xs);font-weight:600;background:var(--sunk);color:var(--muted);white-space:nowrap}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.navy{background:var(--navy-soft);color:var(--navy)}
+.lock{display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-xs);color:var(--brass);font-weight:600}
+.lock svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+.empty{text-align:center;padding:48px 20px;border:1px dashed var(--line);border-radius:var(--r);display:flex;flex-direction:column;gap:10px;align-items:center}
+.empty h3{font-size:var(--fs-lg)}
+.empty p{color:var(--muted);max-width:44ch}
+.skel{border-radius:8px;background:linear-gradient(90deg,var(--sunk),var(--surface),var(--sunk));background-size:200% 100%;animation:sh 1.3s infinite linear}
+@keyframes sh{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.skel{animation:none}}
+
+/* auth */
+.auth{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:start;padding-top:20px}
+@media (max-width:860px){.auth{grid-template-columns:1fr;gap:28px}}
+.auth-intro{display:flex;flex-direction:column;gap:18px;padding-top:12px}
+.auth-intro h1{font-size:clamp(2rem,5vw,3rem);font-weight:400;letter-spacing:-.02em}
+.auth-intro h1 em{font-style:italic;color:var(--navy)}
+.lede{font-size:var(--fs-lg);color:var(--muted);max-width:52ch;font-family:var(--display)}
+.principles{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:18px}
+.principles li{display:grid;grid-template-columns:28px 1fr;gap:6px;font-size:var(--fs-md)}
+.principles b{font-family:var(--display);color:var(--brass);font-weight:600}
+.seg{display:flex;background:var(--sunk);border-radius:9px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:none;padding:8px 10px;border-radius:7px;cursor:pointer;font-weight:600;color:var(--muted);font-size:var(--fs-sm)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.demo-list{display:grid;gap:8px}
+.demo-btn{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);cursor:pointer}
+.demo-btn:hover{border-color:var(--navy)}
+.demo-btn img{width:36px;height:44px;border-radius:6px;object-fit:cover}
+.demo-btn strong{display:block;font-size:var(--fs-sm)}
+.demo-btn span{font-size:var(--fs-xs);color:var(--muted)}
+
+/* wizard */
+.wiz-progress{display:flex;gap:4px;margin:14px 0 6px}
+.wiz-progress i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.wiz-progress i.on{background:var(--navy)}
+.wiz-progress i.cur{background:var(--brass)}
+.wiz-steps{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;scrollbar-width:none}
+.wiz-steps button{flex:none;border:1px solid var(--line);background:var(--surface);padding:5px 10px;border-radius:999px;font-size:var(--fs-xs);cursor:pointer;color:var(--muted)}
+.wiz-steps button[aria-current="step"]{border-color:var(--navy);color:var(--navy);font-weight:600}
+.group-h{font-family:var(--display);font-size:var(--fs-lg);padding-top:10px;border-top:1px solid var(--line);margin-top:6px}
+.wiz-foot{display:flex;justify-content:space-between;gap:10px;margin-top:28px;padding-top:20px;border-top:1px solid var(--line);flex-wrap:wrap}
+.photo-field{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.photo-field img{width:96px;height:120px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.crit{padding:16px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.crit-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.crit-head strong{font-weight:600}
+.crit-head select{width:auto;min-height:34px;padding:4px 30px 4px 10px;font-size:var(--fs-sm)}
+.crit.off .crit-body{opacity:.55}
+.lvl-legend{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 4px}
+@media (max-width:560px){.lvl-legend{grid-template-columns:1fr 1fr}}
+.lvl-legend div{padding:10px;border-radius:8px;background:var(--sunk);font-size:var(--fs-xs)}
+.lvl-legend b{display:block;font-size:var(--fs-sm);color:var(--ink)}
+.states-box{max-height:150px;overflow:auto;padding:8px;border:1px solid var(--line);border-radius:8px}
+
+/* discovery cards */
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.filters select{width:auto;min-height:38px;font-size:var(--fs-sm)}
+.filters .switch{font-size:var(--fs-sm);align-items:center}
+.filters .switch input{margin:0}
+.cards{display:grid;gap:18px}
+.pcard{display:grid;grid-template-columns:132px 1fr;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.pc-photo{position:relative;background:var(--sunk)}
+.pc-photo img{width:100%;aspect-ratio:4/5;height:auto;object-fit:cover;display:block}
+.pc-photo .withheld{position:absolute;left:8px;right:8px;bottom:8px;font-size:10px;line-height:1.3;color:#F4EFE6;background:rgba(15,24,48,.55);padding:4px 6px;border-radius:4px}
+.pc-body{padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.pc-name{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.pc-name h3{font-size:1.35rem}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0;font-size:var(--fs-sm)}
+.facts dt{color:var(--muted)} .facts dd{margin:0;min-width:0}
+.tagline{font-size:var(--fs-sm)}
+.align-hint{font-size:var(--fs-sm);color:var(--ok);font-weight:500}
+.ess{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ess span.t{font-size:var(--fs-xs);padding:2px 8px;border-radius:5px;background:var(--sunk)}
+.pc-actions{grid-column:1/-1;display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--line);background:var(--bg);flex-wrap:wrap}
+.pc-actions .btn{flex:1}
+.pc-actions .btn.quiet{flex:0 0 auto}
+@media (max-width:480px){.pcard{grid-template-columns:104px 1fr}.pc-body{padding:14px}}
+
+/* person */
+.person-head{display:grid;grid-template-columns:180px 1fr;gap:24px;align-items:start}
+@media (max-width:560px){.person-head{grid-template-columns:110px 1fr;gap:16px}}
+.person-head img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:var(--r);border:1px solid var(--line);max-width:100%}
+.person-head h1{font-size:clamp(1.7rem,5vw,2.4rem)}
+.section{padding-block:24px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:14px}
+.section>h2{font-size:var(--fs-xl)}
+.kv{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:10px 18px;margin:0}
+@media (max-width:480px){.kv{grid-template-columns:1fr;gap:2px}.kv dd{margin-bottom:8px}}
+.kv dt{color:var(--muted);font-size:var(--fs-sm)} .kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.quote{font-family:var(--display);font-size:var(--fs-lg);line-height:1.5;border-left:2px solid var(--brass);padding-left:16px}
+.compat{display:grid;gap:14px}
+.cgroup{border-radius:var(--r);padding:16px 18px;background:var(--surface);border:1px solid var(--line)}
+.cgroup h3{font-family:var(--body);font-size:var(--fs-sm);font-weight:700;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cgroup h3::before{content:"";width:8px;height:8px;border-radius:50%}
+.cgroup.strong h3{color:var(--ok)} .cgroup.strong h3::before{background:var(--ok)}
+.cgroup.diff h3{color:var(--bad)} .cgroup.diff h3::before{background:var(--bad)}
+.cgroup.discuss h3{color:var(--warn)} .cgroup.discuss h3::before{background:var(--warn)}
+.cgroup ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.cgroup li{padding:10px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.cgroup li:first-child{border-top:0;padding-top:2px}
+.cgroup li b{font-size:var(--fs-sm);font-weight:600}
+.cgroup li p{font-size:var(--fs-sm);color:var(--muted)}
+.assist{background:var(--navy-soft);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px}
+.assist .row .btn{background:var(--surface)}
+.ai-out{background:var(--surface);border-radius:8px;padding:14px 16px;font-size:var(--fs-md);display:flex;flex-direction:column;gap:8px}
+.ai-out ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.ai-src{font-size:var(--fs-xs);color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+
+/* connections */
+.conn{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.conn-top{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center}
+.conn-top img{width:52px;height:64px;object-fit:cover;border-radius:6px}
+.steps{display:flex;gap:0;overflow-x:auto;padding-bottom:2px}
+.steps li{list-style:none;flex:1;min-width:84px;display:flex;flex-direction:column;gap:6px;font-size:11px;color:var(--muted);position:relative}
+.steps li::before{content:"";height:3px;background:var(--line);margin-right:4px;border-radius:2px}
+.steps li.done{color:var(--ink)} .steps li.done::before{background:var(--navy)}
+.steps li.cur{color:var(--brass);font-weight:700} .steps li.cur::before{background:var(--brass)}
+.steps ol,.steps{margin:0;padding:0}
+.note{font-size:var(--fs-sm);padding:12px 14px;border-radius:8px;background:var(--bg);border:1px solid var(--line)}
+.note .label{display:block;margin-bottom:4px}
+.mini{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.mini img{width:40px;height:50px;object-fit:cover;border-radius:5px}
+
+/* thread */
+.thread-head{display:grid;grid-template-columns:auto 44px 1fr auto;gap:12px;align-items:center;margin-bottom:12px}
+.thread-head img{width:44px;height:54px;border-radius:6px;object-fit:cover}
+.msgs{display:flex;flex-direction:column;gap:10px;padding:16px 0;min-height:200px}
+.msg{max-width:min(78%,520px);padding:10px 14px;border-radius:14px;background:var(--surface);border:1px solid var(--line);align-self:flex-start;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.mine{align-self:flex-end;background:var(--navy);color:var(--on-navy);border-color:var(--navy)}
+.msg time{display:block;font-size:10px;opacity:.7;margin-top:4px}
+.sysmsg{align-self:center;font-size:var(--fs-xs);color:var(--muted);text-align:center;max-width:46ch}
+.composer{position:sticky;bottom:0;background:var(--bg);padding-top:10px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;border-top:1px solid var(--line)}
+@media (max-width:760px){.composer{bottom:calc(64px + env(safe-area-inset-bottom,0px))}}
+.composer textarea{min-height:46px;max-height:160px}
+
+/* staff */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+@media (max-width:700px){.stats{grid-template-columns:1fr 1fr}}
+.stat{padding:14px 16px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
+.stat b{display:block;font-family:var(--display);font-size:1.9rem;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-size:var(--fs-xs);color:var(--muted)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--navy);border-bottom-color:var(--navy)}
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:900px){.board{grid-template-columns:1fr}}
+.col{background:var(--sunk);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.col h3{font-family:var(--body);font-size:var(--fs-sm);font-weight:700;display:flex;justify-content:space-between}
+.icard{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left}
+.icard:hover{border-color:var(--navy)}
+.icard strong{font-size:var(--fs-sm)}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:var(--fs-sm);min-width:640px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td select{min-height:32px;padding:2px 28px 2px 8px;width:auto;font-size:var(--fs-sm)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+.hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;font-size:var(--fs-sm)}
+.hist li{display:grid;grid-template-columns:90px 1fr;gap:10px}
+.private-tag{background:var(--warn-soft);color:var(--warn);font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-left:6px}
+
+/* overlays */
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(10,16,30,.45);display:grid;place-items:end center;padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom,0px))}
+@media (min-width:640px){.overlay{place-items:center}}
+.modal{background:var(--surface);border-radius:14px;width:min(520px,100%);max-height:88vh;overflow:auto;padding:22px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
+.modal-foot{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;flex-direction:column;gap:8px;width:min(440px,calc(100% - 32px))}
+@media (min-width:761px){.toasts{bottom:24px}}
+.toast{background:var(--ink);color:var(--bg);padding:12px 14px;border-radius:10px;display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:var(--fs-sm);box-shadow:var(--shadow)}
+.toast button{background:none;border:0;color:var(--bg);font-weight:700;text-decoration:underline;cursor:pointer}
+.toast.bad{background:var(--bad);color:var(--surface)}
+.foot-note{margin-top:40px;font-size:var(--fs-xs);color:var(--muted);text-align:center}
+</style>
+
+<div id="app"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(()=>{
+'use strict';
+
+/* ============================== Reference data ============================== */
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const EDU=['High school','Associate','Bachelor’s','Master’s','Doctorate / professional'];
+const FTTA=['Completed full-time training','Currently in the full-time training','Attended short-term trainings','Have not attended yet','Prefer to discuss in person'];
+const FTTA_RANK={[FTTA[0]]:3,[FTTA[1]]:3,[FTTA[2]]:2,[FTTA[3]]:1};
+const SERVICE=['Children’s work','Young people','Campus work','Gospel preaching','Music','Hospitality','Cleaning & maintenance','Translation','Care for elderly saints','Audio / video','Administration'];
+const LANGS=['English','Mandarin','Cantonese','Taiwanese','Korean','Spanish','Vietnamese','Japanese','Portuguese','Tagalog','Yoruba','Igbo','Russian','French'];
+const TRAITS=['Thoughtful','Steady','Warm','Outgoing','Organized','Creative','Gentle','Decisive','Curious','Humorous','Patient','Dependable','Attentive','Joyful'];
+const VALUES=['Honesty','Diligence','Humility','Hospitality','Generosity','Patience','Frugality','Family-oriented','Teachable','Faithfulness','Simplicity','Service'];
+const HOBBIES=['Hiking','Cooking','Baking','Piano','Guitar','Singing','Reading','Running','Basketball','Soccer','Badminton','Photography','Travel','Gardening','Board games','Watercolor','Chess','Coffee','Cycling','Swimming'];
+const LIFESTYLE=['Early riser','Night owl','Active / outdoors','Homebody','Urban','Suburban','Simple living','Frequent travel','Pets welcome'];
+const CHILDREN=['Yes, I hope to have children','Open to children','Undecided','Prefer not to have children'];
+const TIMELINE=['Within a year of meeting the right person','In one to two years','No fixed timeline'];
+const RELOCATE=['Yes','Possibly','No'];
+const MARSTAT=['Single','Separated','Other'];
+const EVER=['Never married','Previously married — divorced','Previously married — widowed','Previously married — annulled'];
+const ENERGY=['Very reserved','Quieter','Balanced','Outgoing','Very outgoing'];
+const HEALTH=['Good health','Managing a condition well','Would like to discuss in person'];
+const STATES=['AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','Outside US'];
+const PROGRESS=['Getting acquainted','Meeting in person','Involving family & the church','Considering marriage together'];
+const VISLABEL={members:'Members',connected:'Connections only',private:'Only me & matchmakers'};
+const ALLOW={members:['self','staff','connected','member'],connected:['self','staff','connected'],private:['self','staff']};
+const WEIGHTS={faith:.30,family:.20,character:.20,lifestyle:.10,personality:.10,location:.05,interests:.05};
+const CATLABEL={faith:'Faith & church life',family:'Marriage & family goals',character:'Character & values',lifestyle:'Lifestyle',personality:'Personality',location:'Location',interests:'Interests',other:'Other criteria'};
+const LEVELS={essential:{label:'Essential',w:3},strong:{label:'Strong preference',w:2},preference:{label:'Preference',w:1},flexible:{label:'Flexible',w:.3}};
+const STATUS_FLOW=['pending','reviewing','proposed','accepted','connected'];
+const STATUS_LABEL={pending:'Pending',reviewing:'Reviewing',proposed:'Introduction proposed',accepted:'Accepted',connected:'Connected',closed:'Closed'};
+const PSTATUS={draft:['Draft','warn'],submitted:['Under review','navy'],approved:['Approved','ok'],changes:['Changes requested','bad']};
+
+const STEPS=[
+ {id:'about',title:'About me',intro:'The basics others will see first. You choose who can see each detail.'},
+ {id:'faith',title:'Faith & church life',intro:'Your church life and service, in your own words.'},
+ {id:'life',title:'Life circumstances',intro:'Practical circumstances and what you hope for ahead. Visa details stay private by default.'},
+ {id:'health',title:'Health',intro:'Share only what you’re comfortable with. Detailed health information is private by default.'},
+ {id:'other',title:'Other',intro:'Anything else you’d like a brother or sister to know.'},
+ {id:'criteria',title:'Marriage criteria',intro:'What matters to you in a spouse, and how much. These guide discovery; they don’t decide anything.'},
+ {id:'review',title:'Review & submit',intro:'Check how your profile reads, then submit it for a matchmaker to review.'}
+];
+
+// Field registry: single source of truth for the form, validation and access control.
+const FIELDS=[
+ {key:'firstName',step:'about',label:'First name',type:'text',req:1,vis:'members',opts:['members'],max:40},
+ {key:'lastName',step:'about',label:'Last name',type:'text',req:1,vis:'connected',opts:['members','connected','private'],max:40},
+ {key:'chineseName',step:'about',label:'Chinese name',type:'text',vis:'members',opts:['members','connected','private'],max:20,help:'Optional. Shown beside your English name.'},
+ {key:'gender',step:'about',label:'I am a',type:'select',options:['Brother','Sister'],req:1,vis:'members',opts:['members']},
+ {key:'birth',step:'about',label:'Birth month and year',type:'monthyear',req:1,vis:'private',opts:['connected','private'],help:'Members see an age range (for example “Late 20s”) whatever you choose here.'},
+ {key:'photo',step:'about',label:'Photo',type:'photo',vis:'members',opts:['members','connected'],help:'A clear, recent photo of yourself. You can limit it to people you’re connected with.'},
+ {key:'nationality',step:'about',label:'Nationality',type:'text',req:1,vis:'members',opts:['members','connected','private'],max:60},
+ {key:'heightCm',step:'about',label:'Height (cm)',type:'number',min:120,max:230,vis:'members',opts:['members','connected','private']},
+ {key:'education',step:'about',label:'Highest education',type:'select',options:EDU,req:1,vis:'members',opts:['members','connected']},
+ {key:'study',step:'about',label:'Field of study',type:'text',vis:'members',opts:['members','connected'],max:60},
+ {key:'job',step:'about',label:'Work',type:'text',req:1,vis:'members',opts:['members','connected'],max:80,ph:'e.g. Registered nurse'},
+ {key:'city',step:'about',label:'City',type:'text',req:1,vis:'members',opts:['members','connected'],max:60},
+ {key:'state',step:'about',label:'State',type:'select',options:STATES,req:1,vis:'members',opts:['members']},
+ {key:'languages',step:'about',label:'Languages',type:'chips',options:LANGS,req:1,vis:'members',opts:['members','connected'],group:'Personality & interests'},
+ {key:'energy',step:'about',label:'Social energy',type:'scale',options:ENERGY,req:1,vis:'members',opts:['members','connected']},
+ {key:'traits',step:'about',label:'Personality (up to 5)',type:'chips',options:TRAITS,req:1,maxSel:5,vis:'members',opts:['members','connected']},
+ {key:'values',step:'about',label:'Character & values you hold (up to 5)',type:'chips',options:VALUES,req:1,maxSel:5,vis:'members',opts:['members','connected']},
+ {key:'hobbies',step:'about',label:'Hobbies',type:'chips',options:HOBBIES,vis:'members',opts:['members','connected']},
+ {key:'lifestyle',step:'about',label:'Lifestyle',type:'chips',options:LIFESTYLE,vis:'members',opts:['members','connected']},
+ {key:'email',step:'about',label:'Email',type:'email',vis:'private',opts:['connected','private'],group:'Contact (never shown in discovery)'},
+ {key:'phone',step:'about',label:'Phone',type:'tel',vis:'private',opts:['connected','private'],max:30},
+ {key:'address',step:'about',label:'Exact address',type:'text',vis:'private',opts:['private'],max:140,help:'Used only by matchmakers if needed. Never shown to members.'},
+ {key:'locality',step:'faith',label:'Church locality',type:'text',req:1,vis:'members',opts:['members','connected'],max:60,ph:'e.g. Church in Irvine'},
+ {key:'yearsInChurch',step:'faith',label:'Years in the church life',type:'number',req:1,min:0,max:80,vis:'members',opts:['members','connected']},
+ {key:'ftta',step:'faith',label:'Full-time training (FTTA)',type:'select',options:FTTA,req:1,vis:'members',opts:['members','connected']},
+ {key:'service',step:'faith',label:'Service and ministry involvement',type:'chips',options:SERVICE,vis:'members',opts:['members','connected']},
+ {key:'serviceNotes',step:'faith',label:'About your service',type:'textarea',vis:'members',opts:['members','connected'],max:600},
+ {key:'citizenship',step:'life',label:'Citizenship',type:'text',vis:'private',opts:['members','connected','private'],max:60},
+ {key:'visa',step:'life',label:'Visa status',type:'text',vis:'private',opts:['connected','private'],max:80,help:'Private by default. Matchmakers may need it to plan introductions responsibly.'},
+ {key:'marriageStatus',step:'life',label:'Current marital status',type:'select',options:MARSTAT,req:1,vis:'members',opts:['members','connected']},
+ {key:'everMarried',step:'life',label:'Have you been married before?',type:'select',options:EVER,req:1,vis:'members',opts:['members','connected']},
+ {key:'children',step:'life',label:'Children in the future',type:'select',options:CHILDREN,req:1,vis:'members',opts:['members','connected'],group:'Looking ahead'},
+ {key:'timeline',step:'life',label:'Marriage timeline',type:'select',options:TIMELINE,req:1,vis:'members',opts:['members','connected']},
+ {key:'relocate',step:'life',label:'Open to relocating?',type:'select',options:RELOCATE,req:1,vis:'members',opts:['members','connected']},
+ {key:'healthSummary',step:'health',label:'Health in general',type:'select',options:HEALTH,req:1,vis:'connected',opts:['members','connected','private']},
+ {key:'healthDetail',step:'health',label:'Relevant health information',type:'textarea',vis:'private',opts:['connected','private'],max:800,help:'Anything a future spouse would reasonably want to know in time. Private to you and matchmakers unless you change it.'},
+ {key:'additionalInfo',step:'other',label:'Additional information',type:'textarea',vis:'members',opts:['members','connected'],max:1200,ph:'Family, background, what a normal week looks like…'},
+ {key:'lookingFor',step:'other',label:'What I am looking for',type:'textarea',req:1,vis:'members',opts:['members','connected'],max:800}
+];
+const FIELD=Object.fromEntries(FIELDS.map(f=>[f.key,f]));
+const CONTACT_KEYS=['email','phone','address'];
+
+const CRIT=[
+ {key:'faithYears',cat:'faith',label:'Years in the church life (at least)',type:'number',min:0,max:60},
+ {key:'ftta',cat:'faith',label:'Full-time training',type:'set',options:FTTA.slice(0,4)},
+ {key:'serving',cat:'faith',label:'Actively serving in the church',type:'bool'},
+ {key:'values',cat:'character',label:'Character & values',type:'set',options:VALUES},
+ {key:'children',cat:'family',label:'Children in the future',type:'set',options:CHILDREN},
+ {key:'timeline',cat:'family',label:'Marriage timeline',type:'set',options:TIMELINE},
+ {key:'married',cat:'family',label:'Marital history',type:'set',options:EVER},
+ {key:'age',cat:'family',label:'Age range',type:'range',min:18,max:80,unit:'years'},
+ {key:'traits',cat:'personality',label:'Personality traits',type:'set',options:TRAITS},
+ {key:'energy',cat:'personality',label:'Social energy',type:'set',options:ENERGY},
+ {key:'lifestyle',cat:'lifestyle',label:'Lifestyle',type:'set',options:LIFESTYLE},
+ {key:'education',cat:'lifestyle',label:'Education (at least)',type:'select',options:EDU},
+ {key:'location',cat:'location',label:'Location (states)',type:'states'},
+ {key:'languages',cat:'other',label:'Shared language',type:'set',options:LANGS},
+ {key:'height',cat:'other',label:'Height range',type:'range',min:120,max:230,unit:'cm'},
+ {key:'nationality',cat:'other',label:'Nationality',type:'text',ph:'Comma-separated, e.g. American, Canadian'}
+];
+const CRITD=Object.fromEntries(CRIT.map(c=>[c.key,c]));
+
+/* ============================== Utilities ============================== */
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone=o=>o==null?o:JSON.parse(JSON.stringify(o));
+const now=()=>Date.now();
+const DAY=864e5;
+const list=a=>{a=(a||[]).filter(Boolean);if(a.length<2)return a.join('');return a.slice(0,-1).join(', ')+(a.length>2?',':'')+' and '+a[a.length-1]};
+const lcFirst=s=>s?s.charAt(0).toLowerCase()+s.slice(1):s;
+const inter=(a,b)=>(a||[]).filter(x=>(b||[]).includes(x));
+const avg=a=>{a=a.filter(x=>x!=null&&!isNaN(x));return a.length?a.reduce((s,x)=>s+x,0)/a.length:null};
+const isNum=x=>typeof x==='number'&&!isNaN(x);
+function ageOf(p){if(!p.birthYear)return null;const d=new Date();let a=d.getFullYear()-p.birthYear;if((d.getMonth()+1)<(p.birthMonth||1))a--;return a}
+function ageBand(age){if(age==null)return null;const dec=Math.floor(age/10)*10,d=age-dec;const part=d<=3?'Early':d<=6?'Mid':'Late';const lo=dec+(d<=3?0:d<=6?4:7),hi=dec+(d<=3?3:d<=6?6:9);return{label:`${part} ${dec}s`,lo,hi}}
+function pro(p){return p&&p.gender==='Sister'?{sub:'she',obj:'her',pos:'her',Sub:'She'}:{sub:'he',obj:'him',pos:'his',Sub:'He'}}
+function ftIn(cm){const i=Math.round(cm/2.54);return`${Math.floor(i/12)}′${i%12}″`}
+function ago(t){const s=(now()-t)/1000;if(s<60)return'just now';if(s<3600)return`${Math.floor(s/60)} min ago`;if(s<86400)return`${Math.floor(s/3600)} h ago`;if(s<7*86400)return`${Math.floor(s/86400)} d ago`;return new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric'})}
+function clock(t){return new Date(t).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}
+function monogram(name,id){const cols=['#2C4770','#6B4E3D','#3E5C55','#7A5C3A','#4B4F6B','#5C3F4F'];let h=0;for(const c of String(id||name))h=(h*31+c.charCodeAt(0))>>>0;const ini=esc(String(name||'?').trim().charAt(0).toUpperCase()||'?');return'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150"><rect width="120" height="150" fill="${cols[h%cols.length]}"/><text x="60" y="94" font-family="Georgia,serif" font-size="58" fill="#F4EFE6" text-anchor="middle">${ini}</text></svg>`)}
+const photoOf=p=>p&&p.photo?p.photo:monogram(p?p.firstName:'?',p?p.id:'x');
+async function hashPw(pw,salt){const data=new TextEncoder().encode(salt+':'+pw);try{if(crypto&&crypto.subtle){const h=await crypto.subtle.digest('SHA-256',data);return[...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}}catch(e){}let h=5381;for(const b of data)h=((h<<5)+h+b)|0;return'f'+(h>>>0).toString(16)}
+const salt=()=>Math.random().toString(36).slice(2,10);
+
+/* ============================== Validation (shared by UI and API) ============================== */
+function validateFields(fields,data){
+  const e={};
+  for(const f of fields){
+    if(f.type==='email'||f.type==='photo')continue;
+    if(f.type==='monthyear'){
+      if(!data.birthMonth||!data.birthYear){if(f.req)e.birth='Choose your birth month and year.';continue}
+      const a=ageOf(data);if(a<18)e.birth='Consider is for adults 18 and over.';else if(a>90)e.birth='Check the year you entered.';continue;
+    }
+    const v=data[f.key];
+    const empty=v==null||v===''||(Array.isArray(v)&&!v.length);
+    if(empty){if(f.req)e[f.key]=f.type==='chips'?'Choose at least one.':f.type==='select'||f.type==='scale'?'Choose an option.':'This is required.';continue}
+    if(f.type==='number'){if(!isNum(v))e[f.key]='Enter a number.';else if(v<f.min||v>f.max)e[f.key]=`Enter a value between ${f.min} and ${f.max}.`}
+    if(f.type==='chips'&&f.maxSel&&v.length>f.maxSel)e[f.key]=`Choose up to ${f.maxSel}.`;
+    if(f.type==='tel'&&v&&!/^[0-9+()\-.\s]{7,30}$/.test(v))e[f.key]='Use digits, spaces and + ( ) - only.';
+    if(f.type==='select'&&f.options&&!f.options.includes(v))e[f.key]='Choose an option from the list.';
+  }
+  return e;
+}
+
+/* ============================== Storage ============================== */
+const Store=(()=>{
+  const KEY='consider.mvp.v1';let db=null,persistent=true;
+  const read=()=>{try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):null}catch(e){persistent=false;return null}};
+  const write=()=>{try{localStorage.setItem(KEY,JSON.stringify(db));persistent=true;return true}catch(e){persistent=false;return false}};
+  return{
+    async init(){db=read();if(!db||db.version!==1){db=await buildSeed();write()}},
+    get:()=>db,commit:write,isPersistent:()=>persistent,
+    async reset(){db=await buildSeed();write()}
+  };
+})();
+
+/* ============================== Compatibility engine (pure) ============================== */
+function crValueText(def,val){
+  if(def.type==='range')return`${val[0]}–${val[1]} ${def.unit}`;
+  if(def.type==='number')return`at least ${val}`;
+  if(def.type==='bool')return'actively serving';
+  if(def.type==='select')return`${val} or higher`;
+  if(def.type==='states')return list(val);
+  if(def.type==='text')return val;
+  return list(val.map(lcFirst));
+}
+function evalCrit(def,val,t){
+  const T=t.firstName,P=pro(t);
+  const r=(status,detail)=>({status,detail});
+  switch(def.key){
+    case'age':{const b=t.ageBand;if(!b)return r('unknown',`${T}’s age isn’t shown.`);const ex=isNum(t.age)?`${T} is ${t.age}.`:`${T} is in ${P.pos} ${b.label.toLowerCase()}.`;
+      if(isNum(t.age))return r(t.age>=val[0]&&t.age<=val[1]?'met':(t.age>=val[0]-2&&t.age<=val[1]+2?'partial':'unmet'),ex);
+      if(b.lo>=val[0]&&b.hi<=val[1])return r('met',ex);if(b.hi<val[0]||b.lo>val[1])return r('unmet',ex);return r('partial',ex)}
+    case'faithYears':{if(!isNum(t.yearsInChurch))return r('unknown',`${T} hasn’t shared this.`);const y=t.yearsInChurch;return r(y>=val?'met':y>=val-2?'partial':'unmet',`${T} has been in the church life about ${y} years.`)}
+    case'ftta':{if(!t.ftta)return r('unknown',`${T} hasn’t shared this.`);if(t.ftta===FTTA[4])return r('unknown',`${T} would prefer to discuss training in person.`);return r(val.includes(t.ftta)?'met':'unmet',`${T}: ${lcFirst(t.ftta)}.`)}
+    case'serving':{if(!t.service)return r('unknown',`${T} hasn’t shared this.`);return r(t.service.length?'met':'unmet',t.service.length?`${T} serves in ${list(t.service.map(lcFirst))}.`:`${T} hasn’t listed a current service.`)}
+    case'values':case'traits':case'lifestyle':{const k=def.key;const have=t[k];if(!have)return r('unknown',`${T} hasn’t shared this.`);const o=inter(val,have);const need=Math.min(2,val.length);return r(o.length>=need?'met':o.length?'partial':'unmet',o.length?`Shared: ${list(o.map(lcFirst))}.`:`${T} lists ${list(have.map(lcFirst))}.`)}
+    case'children':case'timeline':{const v=t[def.key];if(!v)return r('unknown',`${T} hasn’t shared this.`);return r(val.includes(v)?'met':'unmet',`${T}: ${lcFirst(v)}.`)}
+    case'married':{const v=t.everMarried;if(!v)return r('unknown',`${T} hasn’t shared this.`);return r(val.includes(v)?'met':'unmet',`${T}: ${lcFirst(v)}.`)}
+    case'energy':{if(!isNum(t.energy))return r('unknown',`${T} hasn’t shared this.`);const l=ENERGY[t.energy-1];const i=val.map(x=>ENERGY.indexOf(x));const d=Math.min(...i.map(x=>Math.abs(x-(t.energy-1))));return r(d===0?'met':d===1?'partial':'unmet',`${T} describes ${P.obj}self as ${l.toLowerCase()}.`)}
+    case'education':{if(!t.education)return r('unknown',`${T} hasn’t shared this.`);return r(EDU.indexOf(t.education)>=EDU.indexOf(val)?'met':'unmet',`${T}: ${t.education}${t.study?' in '+t.study:''}.`)}
+    case'location':{if(!t.state)return r('unknown',`${T}’s location isn’t shown.`);const where=`${T} lives in ${t.city?t.city+', ':''}${t.state}`;if(val.includes(t.state))return r('met',where+'.');if(t.relocate==='Yes'||t.relocate==='Possibly')return r('partial',`${where} and is ${t.relocate==='Yes'?'open':'possibly open'} to relocating.`);return r('unmet',where+'.')}
+    case'languages':{if(!t.languages)return r('unknown',`${T} hasn’t shared this.`);const o=inter(val,t.languages);return r(o.length?'met':'unmet',o.length?`You can both speak ${list(o)}.`:`${T} speaks ${list(t.languages)}.`)}
+    case'height':{if(!isNum(t.heightCm))return r('unknown',`${T} hasn’t shared height.`);const h=t.heightCm;return r(h>=val[0]&&h<=val[1]?'met':(h>=val[0]-3&&h<=val[1]+3?'partial':'unmet'),`${T} is ${h} cm (${ftIn(h)}).`)}
+    case'nationality':{if(!t.nationality)return r('unknown',`${T} hasn’t shared this.`);const want=String(val).split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);return r(want.some(w=>t.nationality.toLowerCase().includes(w))?'met':'unmet',`${T}: ${t.nationality}.`)}
+  }
+  return r('unknown','');
+}
+
+function compatCore(v,t,vCrit,tCrit,vSeen){
+  const T=t.firstName,P=pro(t);
+  const cats={};
+  const set=(k,parts,bits,known=true)=>{cats[k]={sim:avg(parts),text:bits.filter(Boolean).join(' '),known:known&&parts.some(x=>x!=null)}};
+  // Faith
+  {const parts=[],bits=[];
+    if(isNum(v.yearsInChurch)&&isNum(t.yearsInChurch)){const d=Math.abs(v.yearsInChurch-t.yearsInChurch);parts.push(1-Math.min(d,12)/12*.6);bits.push(`You’ve been in the church life about ${v.yearsInChurch} years; ${T}, about ${t.yearsInChurch}.`)}
+    const r1=FTTA_RANK[v.ftta],r2=FTTA_RANK[t.ftta];
+    if(r1!=null&&r2!=null){parts.push(1-Math.abs(r1-r2)/2);
+      const you=['completed the full-time training','are currently in the training','have attended short-term trainings','haven’t attended the training yet'],them=['completed the full-time training','is currently in the training','has attended short-term trainings','hasn’t attended the training yet'],both=['You’ve both completed the full-time training.','You’re both currently in the training.','You’ve both attended short-term trainings.','Neither of you has attended the full-time training yet.'];
+      const i=FTTA.indexOf(v.ftta),j=FTTA.indexOf(t.ftta);bits.push(i===j?both[i]:`You ${you[i]}; ${T} ${them[j]}.`)}
+    else if(t.ftta===FTTA[4]||v.ftta===FTTA[4])bits.push('Training background is something to talk about in person.');
+    const sv=v.service||[],st=t.service;
+    if(st){const sh=inter(sv,st);if(sv.length&&st.length){parts.push(sh.length?1:.72);bits.push(sh.length?`You both serve in ${list(sh.map(lcFirst))}.`:`You serve in ${list(sv.map(lcFirst))}; ${T} serves in ${list(st.map(lcFirst))}.`)}else if(sv.length||st.length)parts.push(.5)}
+    if(v.locality&&t.locality&&v.locality.trim().toLowerCase()===t.locality.trim().toLowerCase())bits.push(`You meet in the same locality, ${t.locality}.`);
+    set('faith',parts,bits)}
+  // Family goals
+  {const parts=[],bits=[];
+    const M={'0,0':1,'0,1':.72,'1,1':.85,'0,2':.5,'1,2':.65,'2,2':.6,'0,3':0,'1,3':.4,'2,3':.45,'3,3':1};
+    if(v.children&&t.children){const a=CHILDREN.indexOf(v.children),b=CHILDREN.indexOf(t.children);parts.push(M[[Math.min(a,b),Math.max(a,b)].join(',')]);bits.push(a===b?`On children, you’re both “${lcFirst(v.children)}”.`:`On children, you said “${lcFirst(v.children)}”; ${T} said “${lcFirst(t.children)}”.`)}
+    if(v.timeline&&t.timeline){const a=TIMELINE.indexOf(v.timeline),b=TIMELINE.indexOf(t.timeline);parts.push(a===b?1:(a===2||b===2)?.75:.55);bits.push(a===b?`You share a similar sense of timing.`:`Your timelines differ a little: “${lcFirst(v.timeline)}” and “${lcFirst(t.timeline)}”.`)}
+    set('family',parts,bits)}
+  // Character & values
+  {const parts=[],bits=[];if(v.values&&t.values&&v.values.length&&t.values.length){const o=inter(v.values,t.values);parts.push(Math.min(1,o.length/Math.min(3,v.values.length,t.values.length)));bits.push(o.length?`You both named ${list(o.map(lcFirst))} among the values you hold.`:`You named ${list(v.values.map(lcFirst))}; ${T} named ${list(t.values.map(lcFirst))}. Different words can still describe shared priorities.`)}set('character',parts,bits)}
+  // Lifestyle
+  {const parts=[],bits=[];if(v.lifestyle&&t.lifestyle&&v.lifestyle.length&&t.lifestyle.length){const o=inter(v.lifestyle,t.lifestyle);let s=Math.min(1,o.length/Math.min(2,v.lifestyle.length,t.lifestyle.length));const clash=[['Early riser','Night owl'],['Urban','Suburban'],['Homebody','Frequent travel']].filter(([a,b])=>(v.lifestyle.includes(a)&&t.lifestyle.includes(b))||(v.lifestyle.includes(b)&&t.lifestyle.includes(a)));s=Math.max(0,s-.25*clash.length);parts.push(s);
+    if(o.length)bits.push(`You both describe your life as ${list(o.map(lcFirst))}.`);clash.forEach(([a,b])=>bits.push(`One of you is ${a.toLowerCase()} and the other ${b.toLowerCase()}.`));if(!o.length&&!clash.length)bits.push(`Your lifestyles are described differently: ${list(v.lifestyle.map(lcFirst))} and ${list(t.lifestyle.map(lcFirst))}.`)}
+    if(v.education&&t.education){const d=Math.abs(EDU.indexOf(v.education)-EDU.indexOf(t.education));parts.push(1-d*.15)}
+    set('lifestyle',parts,bits)}
+  // Personality
+  {const parts=[],bits=[];if(isNum(v.energy)&&isNum(t.energy)){const d=Math.abs(v.energy-t.energy);parts.push(1-d/4*.8);bits.push(d===0?`You both describe your social energy as ${ENERGY[v.energy-1].toLowerCase()}.`:`You describe yourself as ${ENERGY[v.energy-1].toLowerCase()}; ${T}, as ${ENERGY[t.energy-1].toLowerCase()}.`)}
+    if(v.traits&&t.traits&&t.traits.length){const o=inter(v.traits,t.traits);parts.push(Math.min(1,.45+o.length*.28));if(o.length)bits.push(`You share ${list(o.map(lcFirst))} as traits.`);else bits.push(`${T} describes ${P.obj}self as ${list(t.traits.map(lcFirst))}.`)}
+    set('personality',parts,bits)}
+  // Location
+  {const parts=[],bits=[];if(v.state&&t.state){if(v.city&&t.city&&v.city.toLowerCase()===t.city.toLowerCase()&&v.state===t.state){parts.push(1);bits.push(`You both live in ${t.city}, ${t.state}.`)}
+    else if(v.state===t.state){parts.push(.8);bits.push(`You both live in ${t.state === 'Outside US' ? 'the same region' : t.state}${v.city&&t.city?` (${v.city} and ${t.city})`:''}.`)}
+    else{const rv=v.relocate,rt=t.relocate;const s=(rv==='Yes'||rt==='Yes')?.55:(rv==='Possibly'||rt==='Possibly')?.4:.12;parts.push(s);bits.push(`You’re in ${v.city?v.city+', ':''}${v.state}; ${T} is in ${t.city?t.city+', ':''}${t.state}.${rt?` ${T} ${rt==='Yes'?'is open':rt==='Possibly'?'is possibly open':'isn’t looking'} to relocate.`:''}`)}}
+    set('location',parts,bits)}
+  // Interests
+  {const parts=[],bits=[];if(v.hobbies&&t.hobbies&&v.hobbies.length&&t.hobbies.length){const o=inter(v.hobbies,t.hobbies);parts.push(Math.min(1,.25+o.length*.3));bits.push(o.length?`You both enjoy ${list(o.map(lcFirst))}.`:`${T} enjoys ${list(t.hobbies.map(lcFirst))}.`)}set('interests',parts,bits)}
+
+  // Criteria, both directions
+  const crit=[];
+  for(const[k,c]of Object.entries(vCrit||{})){const d=CRITD[k];if(!d||!c.level)continue;const e=evalCrit(d,c.value,t);crit.push({dir:'yours',key:k,cat:d.cat,level:c.level,...e,want:crValueText(d,c.value),label:d.label})}
+  if(tCrit&&vSeen){for(const[k,c]of Object.entries(tCrit)){const d=CRITD[k];if(!d||!c.level)continue;const e=evalCrit(d,c.value,vSeen);crit.push({dir:'theirs',key:k,cat:d.cat,level:c.level,...e,want:crValueText(d,c.value),label:d.label})}}
+  const SV={met:1,partial:.5,unmet:0};
+  const catScore={};
+  for(const k of Object.keys(WEIGHTS)){const parts=[];let wsum=0,acc=0;
+    if(cats[k]&&cats[k].sim!=null){acc+=cats[k].sim*2;wsum+=2}
+    crit.filter(c=>c.cat===k&&c.status in SV).forEach(c=>{const w=LEVELS[c.level].w;acc+=SV[c.status]*w;wsum+=w});
+    catScore[k]=wsum?acc/wsum:null}
+  let ws=0,tot=0;for(const[k,w]of Object.entries(WEIGHTS))if(catScore[k]!=null){tot+=catScore[k]*w;ws+=w}
+  crit.filter(c=>c.cat==='other'&&c.status in SV).forEach(c=>{const w=LEVELS[c.level].w*.03;tot+=SV[c.status]*w;ws+=w});
+  let score=ws?tot/ws:0;
+  const essentialsUnmet=crit.filter(c=>c.dir==='yours'&&c.level==='essential'&&c.status==='unmet').length;
+  score-=essentialsUnmet*.08;
+
+  // Sections
+  const strong=[],diff=[],discuss=[];
+  const lvl=c=>LEVELS[c.level].label;
+  const critItem=c=>({cat:CATLABEL[c.cat],title:c.dir==='yours'?`${c.label} · ${lvl(c)} for you`:`${c.label} · ${lvl(c)} for ${T}`,
+    text:c.dir==='yours'?`Your criteria: ${c.want}. ${c.detail}`:`${T}’s criteria: ${c.want}. ${c.detail}`});
+  for(const k of Object.keys(WEIGHTS)){const c=cats[k],s=catScore[k];if(!c||!c.text)continue;
+    const item={cat:CATLABEL[k],title:CATLABEL[k],text:c.text};
+    if(s==null)continue;if(s>=.72)strong.push(item);else if(s<.42)diff.push(item);else discuss.push(item)}
+  const order={essential:0,strong:1,preference:2,flexible:3};
+  crit.sort((a,b)=>order[a.level]-order[b.level]);
+  crit.forEach(c=>{if(c.status==='met'&&(c.level==='essential'||c.level==='strong'))strong.push(critItem(c));
+    else if(c.status==='unmet'&&c.level!=='flexible')diff.push(critItem(c));
+    else if(c.status==='unmet'||c.status==='partial'||(c.status==='unknown'&&c.level!=='flexible'))discuss.push(critItem(c))});
+  // Life topics worth discussing
+  if(t.everMarried&&t.everMarried!==EVER[0])discuss.push({cat:'Life circumstances',title:'Marital history',text:`${T} has shared that ${P.sub} was ${lcFirst(t.everMarried.replace('Previously married — ','previously married ('))+')'}. It may help to understand each other’s story at a pace that feels respectful.`});
+  if(v.locality&&t.locality&&v.locality.trim().toLowerCase()!==t.locality.trim().toLowerCase())discuss.push({cat:CATLABEL.faith,title:'Serving after marriage',text:`You meet in different localities (${v.locality} and ${t.locality}). How each of you pictures serving after marriage could be a good conversation.`});
+  if(t.healthSummary&&t.healthSummary!==HEALTH[0])discuss.push({cat:'Health',title:'Health',text:`${T} has noted: “${lcFirst(t.healthSummary)}.” It may be something to talk about when the time is right.`});
+  if(!('visa' in t)&&!('citizenship' in t))discuss.push({cat:'Life circumstances',title:'Practical circumstances',text:'Citizenship and visa details are kept private. If an introduction moves forward, these are best discussed directly.'});
+  if(isNum(v.age)&&t.ageBand){const mid=isNum(t.age)?t.age:(t.ageBand.lo+t.ageBand.hi)/2;if(Math.abs(v.age-mid)>=7)discuss.push({cat:CATLABEL.family,title:'Stage of life',text:`There’s an age difference of roughly ${Math.round(Math.abs(v.age-mid))} years. Talking about where each of you is in life may be helpful.`})}
+  const top=Object.keys(WEIGHTS).filter(k=>catScore[k]!=null&&catScore[k]>=.72).sort((a,b)=>catScore[b]*WEIGHTS[b]-catScore[a]*WEIGHTS[a]).slice(0,2).map(k=>CATLABEL[k]);
+  const dedupe=a=>{const s=new Set();return a.filter(x=>{const k=x.title+x.text;if(s.has(k))return false;s.add(k);return true})};
+  return{score,top,essentialsUnmet,sections:{strong:dedupe(strong),diff:dedupe(diff),discuss:dedupe(discuss)}};
+}
+
+/* ============================== Access-controlled API ============================== */
+class ApiError extends Error{constructor(m,code){super(m);this.code=code||'error'}}
+const API=(()=>{
+  const D=()=>Store.get();
+  const wait=(ms=110)=>new Promise(r=>setTimeout(r,ms+Math.random()*140));
+  const seq=p=>`${p}${++D().seq}`;
+  const commit=()=>Store.commit();
+  const userById=id=>D().users.find(u=>u.id===id);
+  const isStaff=u=>u&&(u.role==='matchmaker'||u.role==='admin');
+  const pairOf=(i,a,b)=>(i.a===a&&i.b===b)||(i.a===b&&i.b===a);
+  const other=(i,uid)=>i.a===uid?i.b:i.a;
+  function me(){const s=D().session;const u=s&&userById(s.uid);if(!u)throw new ApiError('Please sign in to continue.','auth');if(u.status==='suspended'){D().session=null;commit();throw new ApiError('This account is suspended. Contact the Consider team.','auth')}return u}
+  function need(...roles){const u=me();if(!roles.includes(u.role))throw new ApiError('You don’t have permission to do that.','forbidden');return u}
+  function relation(viewer,targetId){if(viewer.id===targetId)return'self';if(isStaff(viewer))return'staff';if(D().intros.some(i=>i.status==='connected'&&pairOf(i,viewer.id,targetId)))return'connected';return'member'}
+  function notify(uid,text,link){D().notifs.push({id:seq('n'),uid,text,link:link||null,at:now(),read:false})}
+  function notifyStaff(text,link){D().users.filter(u=>u.role==='matchmaker'&&u.status==='active').forEach(u=>notify(u.id,text,link))}
+  const nm=uid=>{const p=D().profiles[uid];return p?p.firstName:'A former member'};
+
+  // The one place that decides which fields leave the store for a given relationship.
+  function project(uid,rel){
+    const p=D().profiles[uid],u=userById(uid);if(!p||!u)return null;
+    const lvl=k=>(p.vis&&p.vis[k])||FIELD[k].vis;
+    const ok=k=>ALLOW[lvl(k)].includes(rel);
+    const out={id:uid,firstName:p.firstName,gender:p.gender,ageBand:ageBand(ageOf(p))};
+    for(const f of FIELDS){
+      if(f.key==='firstName'||f.key==='gender')continue;
+      if(!ok(f.key)){if(f.key==='photo'&&p.photo)out.photoWithheld=true;continue}
+      if(f.type==='monthyear'){if(p.birthYear){out.birthMonth=p.birthMonth;out.birthYear=p.birthYear;out.age=ageOf(p)}}
+      else if(f.key==='email')out.email=u.email;
+      else if(p[f.key]!==undefined&&p[f.key]!==''&&p[f.key]!==null)out[f.key]=clone(p[f.key]);
+    }
+    if(rel==='self'||rel==='staff'){out.status=p.status;out.hidden=!!p.hidden;out.reviewNote=p.reviewNote||'';out.vis=Object.fromEntries(FIELDS.map(f=>[f.key,lvl(f.key)]));out.updatedAt=p.updatedAt;out.step=p.step||0}
+    const c=D().criteria[uid];
+    if(c&&(c.share||rel==='self'||rel==='staff'))out.criteria={items:clone(c.items),note:c.note||'',share:!!c.share};
+    return out;
+  }
+  function eligibleFor(viewer,targetId){
+    const tu=userById(targetId),tp=D().profiles[targetId],vp=D().profiles[viewer.id];
+    if(!tu||!tp||!vp||tu.id===viewer.id)return false;
+    if(tu.role!=='user'||tu.status!=='active'||tp.status!=='approved'||tp.hidden)return false;
+    if(tp.gender===vp.gender)return false;
+    if(D().blocks.some(b=>(b.by===viewer.id&&b.target===targetId)||(b.by===targetId&&b.target===viewer.id)))return false;
+    return true;
+  }
+  function busyConnected(uid){return D().settings.oneConnection&&D().intros.some(i=>i.status==='connected'&&(i.a===uid||i.b===uid))}
+  function compatFor(vUid,tUid){
+    const viewer=userById(vUid),target=userById(tUid);
+    const t=project(tUid,relation(viewer,tUid)),v=project(vUid,'self');
+    const vSeen=project(vUid,relation(target,vUid));
+    const tCrit=t.criteria&&t.criteria.share?t.criteria.items:null;
+    return compatCore(v,t,(D().criteria[vUid]||{}).items||{},tCrit,vSeen);
+  }
+  function sanitizeProfile(patch){
+    const out={};
+    for(const f of FIELDS){
+      if(f.type==='email')continue;
+      if(f.type==='monthyear'){if('birthMonth'in patch)out.birthMonth=patch.birthMonth?Math.min(12,Math.max(1,parseInt(patch.birthMonth))):null;if('birthYear'in patch)out.birthYear=patch.birthYear?parseInt(patch.birthYear):null;continue}
+      if(!(f.key in patch))continue;let v=patch[f.key];
+      if(f.key==='photo'){out.photo=typeof v==='string'&&/^data:image\/(jpeg|png|webp);base64,/.test(v)&&v.length<700000?v:'';continue}
+      if(f.type==='chips')v=Array.isArray(v)?v.filter(x=>f.options.includes(x)):[];
+      else if(f.type==='number'||f.type==='scale')v=v===''||v==null||isNaN(Number(v))?null:Number(v);
+      else v=String(v??'').trim().slice(0,f.max||200);
+      out[f.key]=v;
+    }
+    return out;
+  }
+  function closeIntro(i,by,text){i.status='closed';i.updatedAt=now();i.history.push({at:now(),status:'closed',by,text:text||'',pub:true})}
+  const ep=fn=>async(...a)=>{await wait();try{return clone(await fn(...a))}finally{commit()}};
+
+  return{
+    /* ---------- auth ---------- */
+    session:ep(()=>{const s=D().session;const u=s&&userById(s.uid);if(!u||u.status!=='active')return null;const p=D().profiles[u.id];return{id:u.id,email:u.email,role:u.role,firstName:p?p.firstName:u.name,profileStatus:p?p.status:null,step:p?p.step||0:0}}),
+    register:ep(async({firstName,email,password,gender,agree})=>{
+      const e={};firstName=String(firstName||'').trim();email=String(email||'').trim().toLowerCase();
+      if(!firstName)e.firstName='Enter your first name.';
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))e.email='Enter a valid email address.';else if(D().users.some(u=>u.email===email))e.email='An account with this email already exists. Try signing in.';
+      if(String(password||'').length<8)e.password='Use at least 8 characters.';
+      if(!['Brother','Sister'].includes(gender))e.gender='Choose one.';
+      if(!agree)e.agree='Please confirm to continue.';
+      if(Object.keys(e).length){const err=new ApiError('Check the highlighted fields.','validation');err.fields=e;throw err}
+      const id=seq('u'),s=salt();
+      D().users.push({id,email,role:'user',status:'active',salt:s,hash:await hashPw(password,s),createdAt:now()});
+      D().profiles[id]={firstName,gender,status:'draft',vis:{},hidden:false,step:0,createdAt:now(),updatedAt:now()};
+      D().criteria[id]={items:{},note:'',share:true};
+      D().session={uid:id};
+      notify(id,'Welcome to Consider. Finish your profile and criteria, then submit it for review.');
+      return{id};
+    }),
+    login:ep(async(email,password)=>{
+      email=String(email||'').trim().toLowerCase();const u=D().users.find(x=>x.email===email);
+      if(!u||u.hash!==await hashPw(String(password||''),u.salt))throw new ApiError('That email and password don’t match an account.','auth');
+      if(u.status!=='active')throw new ApiError('This account is suspended. Contact the Consider team.','auth');
+      D().session={uid:u.id};return{id:u.id,role:u.role};
+    }),
+    logout:ep(()=>{D().session=null;return true}),
+    settings:ep(()=>{me();const s=D().settings;return{requireApproval:s.requireApproval,autoConnect:s.autoConnect,aiEnabled:s.aiEnabled,oneConnection:s.oneConnection,persistent:Store.isPersistent()}}),
+
+    /* ---------- own profile ---------- */
+    myProfile:ep(()=>{const u=need('user');return project(u.id,'self')}),
+    saveMyProfile:ep((patch,vis,step)=>{
+      const u=need('user'),p=D().profiles[u.id];const clean=sanitizeProfile(patch||{});
+      if(clean.gender&&p.status!=='draft'&&clean.gender!==p.gender)delete clean.gender;
+      const stepFields=FIELDS.filter(f=>Object.keys(clean).includes(f.key)||(f.type==='monthyear'&&'birthYear'in clean));
+      const errs=validateFields(stepFields,{...p,...clean});
+      if(Object.keys(errs).length){const e=new ApiError('Some answers need attention.','validation');e.fields=errs;throw e}
+      Object.assign(p,clean);
+      for(const[k,l]of Object.entries(vis||{}))if(FIELD[k]&&FIELD[k].opts.includes(l))(p.vis=p.vis||{})[k]=l;
+      if(isNum(step))p.step=Math.max(p.step||0,step);
+      p.updatedAt=now();if(p.status==='approved')p.editedSinceReview=true;
+      return project(u.id,'self');
+    }),
+    submitMyProfile:ep(()=>{
+      const u=need('user'),p=D().profiles[u.id];
+      const errs=validateFields(FIELDS,p);if(Object.keys(errs).length){const e=new ApiError('A few required answers are missing. Each step with a missing answer is marked.','validation');e.fields=errs;throw e}
+      if(!Object.values((D().criteria[u.id]||{}).items||{}).some(c=>c.level))throw new ApiError('Add at least one marriage criterion before submitting.','validation');
+      if(D().settings.requireApproval){p.status='submitted';notifyStaff(`${p.firstName} submitted a profile for review.`,{view:'mmReview',params:{uid:u.id}});notify(u.id,'Your profile was submitted. A matchmaker will review it soon.')}
+      else{p.status='approved';notify(u.id,'Your profile is live. You can now express interest.')}
+      p.submittedAt=now();p.reviewNote='';p.updatedAt=now();return{status:p.status};
+    }),
+    setVisibility:ep((key,level)=>{const u=need('user');const f=FIELD[key];if(!f||!f.opts.includes(level))throw new ApiError('That visibility option isn’t available for this field.');const p=D().profiles[u.id];(p.vis=p.vis||{})[key]=level;p.updatedAt=now();return true}),
+    setHidden:ep(h=>{const u=need('user');D().profiles[u.id].hidden=!!h;return!!h}),
+    previewAs:ep(mode=>{const u=need('user');const rel={member:'member',connected:'connected',staff:'staff'}[mode];if(!rel)throw new ApiError('Unknown preview.');const p=project(u.id,rel);if(p&&p.criteria&&!p.criteria.share&&rel!=='staff')delete p.criteria;return p}),
+    deleteMyAccount:ep(confirmText=>{
+      const u=need('user');if(String(confirmText||'').trim().toLowerCase()!==u.email)throw new ApiError('Type your account email exactly to confirm.','validation');
+      const d=D();d.intros.filter(i=>i.a===u.id||i.b===u.id).forEach(i=>{if(i.status!=='closed'){closeIntro(i,u.id,'The other member left Consider.');notify(other(i,u.id),'An introduction you were part of has closed because the other member left Consider.')}});
+      d.messages=d.messages.filter(m=>m.from!==u.id);d.interests=d.interests.filter(x=>x.from!==u.id&&x.to!==u.id);
+      delete d.profiles[u.id];delete d.criteria[u.id];d.notifs=d.notifs.filter(n=>n.uid!==u.id);d.blocks=d.blocks.filter(b=>b.by!==u.id&&b.target!==u.id);
+      d.notes=d.notes.filter(n=>n.subject!=='user:'+u.id);d.users=d.users.filter(x=>x.id!==u.id);d.session=null;return true;
+    }),
+
+    /* ---------- criteria ---------- */
+    myCriteria:ep(()=>{const u=need('user');return D().criteria[u.id]||{items:{},note:'',share:true}}),
+    saveMyCriteria:ep((items,note,share)=>{
+      const u=need('user');const clean={},errs={};
+      for(const[k,c]of Object.entries(items||{})){const d=CRITD[k];if(!d||!c||!c.level)continue;if(!LEVELS[c.level]){errs[k]='Choose a level.';continue}
+        let v=c.value;
+        if(d.type==='set'||d.type==='states'){const opts=d.type==='states'?STATES:d.options;v=(Array.isArray(v)?v:[]).filter(x=>opts.includes(x));if(!v.length){errs[k]='Choose at least one option, or set this to “Not considering”.';continue}}
+        else if(d.type==='range'){const a=Number(v&&v[0]),b=Number(v&&v[1]);if(!isNum(a)||!isNum(b)||a<d.min||b>d.max||a>b){errs[k]=`Enter a range between ${d.min} and ${d.max}, lowest first.`;continue}v=[a,b]}
+        else if(d.type==='number'){v=Number(v);if(!isNum(v)||v<d.min||v>d.max){errs[k]=`Enter a number between ${d.min} and ${d.max}.`;continue}}
+        else if(d.type==='select'){if(!d.options.includes(v)){errs[k]='Choose an option.';continue}}
+        else if(d.type==='text'){v=String(v||'').trim().slice(0,120);if(!v){errs[k]='Enter at least one value.';continue}}
+        else v=true;
+        clean[k]={level:c.level,value:v}}
+      if(Object.keys(errs).length){const e=new ApiError('Some criteria need attention.','validation');e.fields=errs;throw e}
+      D().criteria[u.id]={items:clean,note:String(note||'').trim().slice(0,600),share:!!share};
+      const p=D().profiles[u.id];p.step=Math.max(p.step||0,6);p.updatedAt=now();return true;
+    }),
+
+    /* ---------- discovery ---------- */
+    discover:ep((filters={})=>{
+      const u=need('user');const vp=D().profiles[u.id];
+      if(vp.status==='draft')return{state:'draft',cards:[]};
+      const passed=new Set(D().interests.filter(x=>x.from===u.id&&x.kind==='pass').map(x=>x.to));
+      const mine=new Set(D().interests.filter(x=>x.from===u.id&&x.kind==='interest').map(x=>x.to));
+      const inIntro=new Set(D().intros.filter(i=>i.a===u.id||i.b===u.id).map(i=>other(i,u.id)));
+      let cards=D().users.filter(t=>eligibleFor(u,t.id)&&!passed.has(t.id)&&!inIntro.has(t.id)&&!busyConnected(t.id)).map(t=>{
+        const p=project(t.id,relation(u,t.id)),c=compatFor(u.id,t.id);
+        const ess=p.criteria?Object.entries(p.criteria.items).filter(([,x])=>x.level==='essential').map(([k,x])=>({label:CRITD[k].label,value:crValueText(CRITD[k],x.value)})):[];
+        return{profile:p,score:c.score,top:c.top,essentialsUnmet:c.essentialsUnmet,essentials:ess,interested:mine.has(t.id)}});
+      const total=cards.length;
+      if(filters.state)cards=cards.filter(c=>c.profile.state===filters.state);
+      if(filters.age)cards=cards.filter(c=>{const b=c.profile.ageBand;return b&&Math.floor(b.lo/10)*10===Number(filters.age)||(filters.age==='40'&&b&&b.lo>=40)});
+      if(filters.essentials)cards=cards.filter(c=>c.essentialsUnmet===0);
+      cards.sort((a,b)=>b.score-a.score);
+      cards.forEach(c=>delete c.score);
+      return{state:vp.status,cards,total,passedCount:passed.size};
+    }),
+    person:ep(targetId=>{
+      const u=me();const rel=relation(u,targetId);
+      if(rel==='member'){if(u.role!=='user'||!eligibleFor(u,targetId))throw new ApiError('This profile isn’t available.','not_found')}
+      const p=project(targetId,rel);if(!p)throw new ApiError('This profile isn’t available.','not_found');
+      if(p.criteria&&!p.criteria.share&&rel!=='staff')delete p.criteria;
+      const intro=D().intros.find(i=>pairOf(i,u.id,targetId));
+      const interested=D().interests.some(x=>x.from===u.id&&x.to===targetId&&x.kind==='interest');
+      const passed=D().interests.some(x=>x.from===u.id&&x.to===targetId&&x.kind==='pass');
+      const compat=u.role==='user'&&D().profiles[u.id]?compatFor(u.id,targetId):null;
+      return{profile:p,relation:rel,intro:intro?{id:intro.id,status:intro.status}:null,interested,passed,compat,canInterest:u.role==='user'&&D().profiles[u.id].status==='approved'};
+    }),
+    expressInterest:ep(targetId=>{
+      const u=need('user');const vp=D().profiles[u.id];
+      if(vp.status!=='approved')throw new ApiError('Your profile needs to be approved before you can express interest.','forbidden');
+      if(!eligibleFor(u,targetId))throw new ApiError('This profile isn’t available.','not_found');
+      if(D().intros.some(i=>pairOf(i,u.id,targetId)))throw new ApiError('You already have an introduction with this member.');
+      D().interests=D().interests.filter(x=>!(x.from===u.id&&x.to===targetId));
+      D().interests.push({from:u.id,to:targetId,kind:'interest',at:now()});
+      const mutual=D().interests.some(x=>x.from===targetId&&x.to===u.id&&x.kind==='interest');
+      if(!mutual)return{mutual:false};
+      const auto=D().settings.autoConnect;
+      const i={id:seq('i'),a:targetId,b:u.id,status:auto?'connected':'pending',createdAt:now(),updatedAt:now(),accepted:{},proposalNote:'',progress:{stage:PROGRESS[0],history:[]},lastRead:{},history:[{at:now(),status:'pending',by:'system',text:'Mutual interest',pub:true}]};
+      if(auto)i.history.push({at:now(),status:'connected',by:'system',text:'Connected automatically',pub:true});
+      D().intros.push(i);
+      const msg=n=>auto?`You and ${n} both expressed interest. Your conversation is open.`:`You and ${n} both expressed interest. A matchmaker will review the introduction.`;
+      notify(u.id,msg(nm(targetId)),{view:'connections'});notify(targetId,msg(vp.firstName),{view:'connections'});
+      notifyStaff(`${vp.firstName} and ${nm(targetId)} expressed mutual interest.`,{view:'mmIntro',params:{id:i.id}});
+      return{mutual:true,introId:i.id,status:i.status};
+    }),
+    withdrawInterest:ep(targetId=>{const u=need('user');if(D().intros.some(i=>pairOf(i,u.id,targetId)))throw new ApiError('This has become an introduction. You can close it from Connections.');D().interests=D().interests.filter(x=>!(x.from===u.id&&x.to===targetId&&x.kind==='interest'));return true}),
+    pass:ep(targetId=>{const u=need('user');if(D().intros.some(i=>pairOf(i,u.id,targetId)&&i.status!=='closed'))throw new ApiError('You have an active introduction with this member.');D().interests=D().interests.filter(x=>!(x.from===u.id&&x.to===targetId));D().interests.push({from:u.id,to:targetId,kind:'pass',at:now()});return true}),
+    unpass:ep(targetId=>{const u=need('user');D().interests=D().interests.filter(x=>!(x.from===u.id&&x.to===targetId&&x.kind==='pass'));return true}),
+    myPasses:ep(()=>{const u=need('user');return D().interests.filter(x=>x.from===u.id&&x.kind==='pass').map(x=>{const p=D().profiles[x.to];return p?{id:x.to,firstName:p.firstName,at:x.at}:null}).filter(Boolean)}),
+
+    /* ---------- connections & messaging ---------- */
+    myConnections:ep(()=>{
+      const u=need('user');
+      const intros=D().intros.filter(i=>i.a===u.id||i.b===u.id).sort((a,b)=>b.updatedAt-a.updatedAt).map(i=>{const o=other(i,u.id);const last=D().messages.filter(m=>m.introId===i.id).slice(-1)[0];
+        const unread=D().messages.filter(m=>m.introId===i.id&&m.from!==u.id&&m.at>(i.lastRead[u.id]||0)).length;
+        return{id:i.id,status:i.status,createdAt:i.createdAt,updatedAt:i.updatedAt,other:D().profiles[o]?project(o,relation(u,o)):{id:o,firstName:'Former member'},myAccept:i.accepted[u.id]??null,proposalNote:i.proposalNote,progress:i.progress,history:i.history.filter(h=>h.pub).map(h=>({at:h.at,status:h.status,text:h.text})),last:last?{text:last.text,at:last.at,mine:last.from===u.id}:null,unread}});
+      const introPartners=new Set(D().intros.filter(i=>i.a===u.id||i.b===u.id).map(i=>other(i,u.id)));
+      const pending=D().interests.filter(x=>x.from===u.id&&x.kind==='interest'&&!introPartners.has(x.to)&&D().profiles[x.to]).map(x=>({id:x.to,at:x.at,profile:project(x.to,'member')}));
+      return{intros,pending};
+    }),
+    respondProposal:ep((introId,accept)=>{
+      const u=need('user');const i=D().intros.find(x=>x.id===introId&&(x.a===u.id||x.b===u.id));if(!i)throw new ApiError('Introduction not found.','not_found');
+      if(i.status!=='proposed')throw new ApiError('This introduction isn’t waiting for a response.');
+      if(!accept){closeIntro(i,u.id,'One member chose not to continue.');notify(other(i,u.id),'An introduction has closed. Thank you for considering it with care.',{view:'connections'});notifyStaff(`${nm(u.id)} declined the introduction with ${nm(other(i,u.id))}.`,{view:'mmIntro',params:{id:i.id}});return{status:'closed'}}
+      i.accepted[u.id]=true;i.updatedAt=now();i.history.push({at:now(),status:'proposed',by:u.id,text:`${nm(u.id)} accepted`,pub:false});
+      if(i.accepted[i.a]&&i.accepted[i.b]){i.status='accepted';i.history.push({at:now(),status:'accepted',by:'system',text:'Both accepted',pub:true});notifyStaff(`${nm(i.a)} and ${nm(i.b)} both accepted their introduction.`,{view:'mmIntro',params:{id:i.id}});[i.a,i.b].forEach(x=>notify(x,`You and ${nm(other(i,x))} both accepted. A matchmaker will open your conversation shortly.`,{view:'connections'}))}
+      return{status:i.status};
+    }),
+    endConnection:ep((introId,reason)=>{
+      const u=need('user');const i=D().intros.find(x=>x.id===introId&&(x.a===u.id||x.b===u.id));if(!i)throw new ApiError('Introduction not found.','not_found');
+      if(i.status==='closed')return{status:'closed'};
+      closeIntro(i,u.id,'Closed by a member.');i.closedNote=String(reason||'').slice(0,400);
+      D().interests=D().interests.filter(x=>!(pairOf({a:x.from,b:x.to},i.a,i.b)));
+      notify(other(i,u.id),`Your connection with ${nm(u.id)} has closed. Thank you for the care you’ve shown.`,{view:'connections'});
+      notifyStaff(`${nm(u.id)} closed the connection with ${nm(other(i,u.id))}.`,{view:'mmIntro',params:{id:i.id}});return{status:'closed'};
+    }),
+    setProgress:ep((introId,stage)=>{const u=need('user');const i=D().intros.find(x=>x.id===introId&&(x.a===u.id||x.b===u.id));if(!i||i.status!=='connected')throw new ApiError('You can update progress only for an open connection.');if(!PROGRESS.includes(stage))throw new ApiError('Choose a stage from the list.');i.progress.stage=stage;i.progress.history.push({at:now(),by:u.id,stage});i.updatedAt=now();notify(other(i,u.id),`${nm(u.id)} updated your relationship stage to “${stage}”.`,{view:'thread',params:{id:i.id}});return i.progress}),
+    thread:ep(introId=>{
+      const u=need('user');const i=D().intros.find(x=>x.id===introId&&(x.a===u.id||x.b===u.id));if(!i)throw new ApiError('Conversation not found.','not_found');
+      if(i.status!=='connected'&&i.status!=='closed')throw new ApiError('Messaging opens once your introduction is connected.','forbidden');
+      if(i.status==='closed'&&!D().messages.some(m=>m.introId===i.id))throw new ApiError('This introduction closed before a conversation started.','forbidden');
+      i.lastRead[u.id]=now();const o=other(i,u.id);
+      return{intro:{id:i.id,status:i.status,progress:i.progress,proposalNote:i.proposalNote,connectedAt:(i.history.find(h=>h.status==='connected')||{}).at},other:D().profiles[o]?project(o,relation(u,o)):{id:o,firstName:'Former member'},messages:D().messages.filter(m=>m.introId===i.id).map(m=>({id:m.id,text:m.text,at:m.at,mine:m.from===u.id}))};
+    }),
+    send:ep((introId,text)=>{
+      const u=need('user');const i=D().intros.find(x=>x.id===introId&&(x.a===u.id||x.b===u.id));if(!i)throw new ApiError('Conversation not found.','not_found');
+      if(i.status!=='connected')throw new ApiError('This conversation is closed.','forbidden');
+      text=String(text||'').trim();if(!text)throw new ApiError('Write a message first.','validation');if(text.length>2000)throw new ApiError('Messages can be up to 2,000 characters.','validation');
+      const m={id:seq('m'),introId,from:u.id,text,at:now()};D().messages.push(m);i.lastRead[u.id]=now();i.updatedAt=now();
+      const o=other(i,u.id);if(!D().notifs.some(n=>n.uid===o&&!n.read&&n.link&&n.link.params&&n.link.params.id===i.id))notify(o,`New message from ${nm(u.id)}.`,{view:'thread',params:{id:i.id}});
+      return{id:m.id,text:m.text,at:m.at,mine:true};
+    }),
+    report:ep((targetId,reason,block)=>{
+      const u=me();reason=String(reason||'').trim();if(reason.length<10)throw new ApiError('Describe the concern in at least a sentence.','validation');
+      if(!userById(targetId))throw new ApiError('Member not found.','not_found');
+      D().reports.push({id:seq('r'),by:u.id,target:targetId,reason:reason.slice(0,1000),status:'open',at:now()});
+      if(block){D().blocks.push({by:u.id,target:targetId,at:now()});D().intros.filter(i=>pairOf(i,u.id,targetId)&&i.status!=='closed').forEach(i=>{closeIntro(i,u.id,'Closed by a member.');notify(other(i,u.id),'An introduction you were part of has closed.')})}
+      D().users.filter(x=>x.role==='admin').forEach(a=>notify(a.id,'A new report needs review.',{view:'admin',params:{tab:'reports'}}));
+      return true;
+    }),
+    notifs:ep(()=>{const u=me();return D().notifs.filter(n=>n.uid===u.id).sort((a,b)=>b.at-a.at).slice(0,60)}),
+    unreadCount:ep(()=>{const s=D().session;if(!s)return 0;const u=userById(s.uid);if(!u)return 0;const n=D().notifs.filter(x=>x.uid===u.id&&!x.read).length;return n}),
+    markNotifsRead:ep(()=>{const u=me();D().notifs.forEach(n=>{if(n.uid===u.id)n.read=true});return true}),
+    aiContext:ep(targetId=>{
+      const u=me();if(!D().settings.aiEnabled)throw new ApiError('AI assistance is turned off by the administrator.','forbidden');
+      const rel=relation(u,targetId);if(rel==='member'&&!eligibleFor(u,targetId))throw new ApiError('This profile isn’t available.','not_found');
+      const strip=p=>{if(!p)return p;const o={...p};['photo','vis','email','phone','address','reviewNote','updatedAt','status','hidden','photoWithheld','birthMonth','birthYear'].forEach(k=>delete o[k]);if(o.criteria&&!o.criteria.share)delete o.criteria;return o};
+      const them=strip(project(targetId,rel==='staff'?'member':rel));
+      const meSeen=u.role==='user'?strip(project(u.id,relation(userById(targetId),u.id))):null;
+      const compat=u.role==='user'?compatFor(u.id,targetId):null;
+      return{them,me:meSeen,compat};
+    }),
+
+    /* ---------- matchmaker ---------- */
+    staffOverview:ep(()=>{need('matchmaker','admin');const d=D();const c={};STATUS_FLOW.concat('closed').forEach(s=>c[s]=d.intros.filter(i=>i.status===s).length);return{reviews:Object.entries(d.profiles).filter(([id,p])=>p.status==='submitted'&&userById(id)).length,intros:c,members:d.users.filter(u=>u.role==='user').length,approved:Object.values(d.profiles).filter(p=>p.status==='approved').length}}),
+    reviewQueue:ep(()=>{need('matchmaker','admin');return Object.entries(D().profiles).filter(([id,p])=>['submitted','changes'].includes(p.status)&&userById(id)).map(([id,p])=>({id,firstName:p.firstName,lastName:p.lastName,city:p.city,state:p.state,status:p.status,submittedAt:p.submittedAt||p.updatedAt,photo:p.photo,gender:p.gender})).sort((a,b)=>a.submittedAt-b.submittedAt)}),
+    members:ep(()=>{need('matchmaker','admin');return D().users.filter(u=>u.role==='user').map(u=>{const p=D().profiles[u.id]||{};return{id:u.id,firstName:p.firstName,lastName:p.lastName,gender:p.gender,city:p.city,state:p.state,status:p.status,hidden:!!p.hidden,photo:p.photo,locality:p.locality}})}),
+    staffMember:ep(uid=>{const s=need('matchmaker','admin');const u=userById(uid);if(!u||u.role!=='user')throw new ApiError('Member not found.','not_found');
+      return{profile:project(uid,'staff'),account:{email:u.email,createdAt:u.createdAt,status:u.status},editedSinceReview:!!D().profiles[uid].editedSinceReview,notes:D().notes.filter(n=>n.subject==='user:'+uid).map(n=>({...n,author:nm(n.authorId)||'Staff'})),intros:D().intros.filter(i=>i.a===uid||i.b===uid).map(i=>({id:i.id,status:i.status,other:nm(other(i,uid))})),reports:D().reports.filter(r=>r.target===uid).length}}),
+    approveProfile:ep(uid=>{need('matchmaker','admin');const p=D().profiles[uid];if(!p)throw new ApiError('Member not found.','not_found');p.status='approved';p.reviewNote='';p.editedSinceReview=false;p.reviewedAt=now();notify(uid,'Your profile was approved. You can now discover and express interest.',{view:'discover'});return true}),
+    requestChanges:ep((uid,note)=>{need('matchmaker','admin');const p=D().profiles[uid];if(!p)throw new ApiError('Member not found.','not_found');note=String(note||'').trim();if(note.length<5)throw new ApiError('Explain what should change so the member can act on it.','validation');p.status='changes';p.reviewNote=note.slice(0,800);notify(uid,'A matchmaker asked for a few changes to your profile.',{view:'me'});return true}),
+    introBoard:ep(()=>{need('matchmaker','admin');return D().intros.slice().sort((a,b)=>b.updatedAt-a.updatedAt).map(i=>({id:i.id,status:i.status,a:{id:i.a,firstName:nm(i.a),photo:(D().profiles[i.a]||{}).photo},b:{id:i.b,firstName:nm(i.b),photo:(D().profiles[i.b]||{}).photo},updatedAt:i.updatedAt,accepted:i.accepted,stage:i.progress.stage}))}),
+    staffIntro:ep(id=>{need('matchmaker','admin');const i=D().intros.find(x=>x.id===id);if(!i)throw new ApiError('Introduction not found.','not_found');
+      const has=D().profiles[i.a]&&D().profiles[i.b];
+      return{intro:{id:i.id,status:i.status,createdAt:i.createdAt,accepted:i.accepted,proposalNote:i.proposalNote,progress:i.progress,history:i.history.map(h=>({...h,byName:h.by==='system'?'System':nm(h.by)})),messageCount:D().messages.filter(m=>m.introId===i.id).length},a:project(i.a,'staff'),b:project(i.b,'staff'),compat:has?compatFor(i.a,i.b):null,notes:D().notes.filter(n=>n.subject==='intro:'+id).map(n=>({...n,author:nm(n.authorId)}))}}),
+    advanceIntro:ep((id,to,note)=>{
+      const s=need('matchmaker','admin');const i=D().intros.find(x=>x.id===id);if(!i)throw new ApiError('Introduction not found.','not_found');
+      const allowed={pending:['reviewing','closed'],reviewing:['proposed','closed'],proposed:['closed'],accepted:['connected','closed'],connected:['closed'],closed:[]};
+      if(!allowed[i.status].includes(to))throw new ApiError(`An introduction can’t move from ${STATUS_LABEL[i.status]} to ${STATUS_LABEL[to]}.`);
+      note=String(note||'').trim();
+      if(to==='proposed'){if(note.length<10)throw new ApiError('Write a short introduction note. Both members will read it.','validation');i.proposalNote=note.slice(0,800);i.accepted={}}
+      if(to==='connected'&&!(i.accepted[i.a]&&i.accepted[i.b]))throw new ApiError('Both members need to accept first.');
+      i.status=to;i.updatedAt=now();i.history.push({at:now(),status:to,by:s.id,text:to==='closed'?(note?'Closed by the matchmaking team.':'Closed by the matchmaking team.'):'',pub:true});
+      if(to==='closed'&&note)D().notes.push({id:seq('note'),subject:'intro:'+id,authorId:s.id,text:'Closing note: '+note,at:now()});
+      const msgs={reviewing:x=>`A matchmaker is reviewing your introduction with ${nm(other(i,x))}.`,proposed:x=>`A matchmaker has proposed an introduction with ${nm(other(i,x))}. Read the note and respond when you’re ready.`,connected:x=>`You and ${nm(other(i,x))} are connected. Your private conversation is open.`,closed:x=>`Your introduction with ${nm(other(i,x))} has closed.`};
+      [i.a,i.b].forEach(x=>{if(D().profiles[x])notify(x,msgs[to](x),{view:to==='connected'?'thread':'connections',params:{id:i.id}})});
+      if(to==='connected'&&!i.progress)i.progress={stage:PROGRESS[0],history:[]};
+      return{status:i.status};
+    }),
+    addNote:ep((subject,text)=>{const s=need('matchmaker','admin');text=String(text||'').trim();if(!text)throw new ApiError('Write a note first.','validation');if(!/^(user|intro):/.test(subject))throw new ApiError('Unknown subject.');D().notes.push({id:seq('note'),subject,authorId:s.id,text:text.slice(0,1500),at:now()});return true}),
+
+    /* ---------- admin ---------- */
+    users:ep(()=>{const a=need('admin');return D().users.map(u=>{const p=D().profiles[u.id];return{id:u.id,name:p?`${p.firstName} ${p.lastName||''}`.trim():u.name,email:u.email,role:u.role,status:u.status,profileStatus:p?p.status:null,createdAt:u.createdAt,self:u.id===a.id}})}),
+    setRole:ep((uid,role)=>{const a=need('admin');if(uid===a.id)throw new ApiError('You can’t change your own role.');if(!['user','matchmaker','admin'].includes(role))throw new ApiError('Unknown role.');const u=userById(uid);if(!u)throw new ApiError('User not found.','not_found');u.role=role;if(role!=='user'&&D().profiles[uid])D().profiles[uid].hidden=true;notify(uid,`Your role was changed to ${role}.`);return true}),
+    setUserStatus:ep((uid,status)=>{const a=need('admin');if(uid===a.id)throw new ApiError('You can’t suspend your own account.');if(!['active','suspended'].includes(status))throw new ApiError('Unknown status.');const u=userById(uid);if(!u)throw new ApiError('User not found.','not_found');u.status=status;if(status==='suspended')D().intros.filter(i=>(i.a===uid||i.b===uid)&&i.status!=='closed').forEach(i=>{closeIntro(i,a.id,'Closed by the Consider team.');notify(other(i,uid),'An introduction you were part of has closed.')});return true}),
+    reports:ep(()=>{need('admin');return D().reports.slice().sort((a,b)=>b.at-a.at).map(r=>({...r,byName:nm(r.by),targetName:nm(r.target),targetStatus:(userById(r.target)||{}).status}))}),
+    resolveReport:ep((id,outcome)=>{const a=need('admin');const r=D().reports.find(x=>x.id===id);if(!r)throw new ApiError('Report not found.','not_found');r.status=outcome==='dismissed'?'dismissed':'resolved';r.resolvedBy=a.id;r.resolvedAt=now();return true}),
+    saveSettings:ep(patch=>{need('admin');const s=D().settings;['requireApproval','autoConnect','aiEnabled','oneConnection'].forEach(k=>{if(k in patch)s[k]=!!patch[k]});return clone(s)}),
+    resetDemo:ep(async()=>{need('admin');await Store.reset();return true})
+  };
+})();
+
+/* ============================== Seed data (fictional) ============================== */
+async function buildSeed(){
+  const t=now();
+  const db={version:1,seq:200,users:[],profiles:{},criteria:{},interests:[],intros:[],messages:[],notes:[],reports:[],notifs:[],blocks:[],session:null,
+    settings:{requireApproval:true,autoConnect:false,aiEnabled:true,oneConnection:true}};
+  const PW='demo1234';
+  const people=[
+   ['u1','grace.liu@example.org','Sister',{firstName:'Grace',lastName:'Liu',chineseName:'刘恩典',birthMonth:3,birthYear:1996,nationality:'American',heightCm:163,education:EDU[2],study:'Nursing',job:'Registered nurse',city:'Irvine',state:'CA',languages:['English','Mandarin'],energy:3,traits:['Warm','Attentive','Steady'],values:['Hospitality','Honesty','Patience'],hobbies:['Cooking','Hiking','Watercolor'],lifestyle:['Early riser','Active / outdoors'],phone:'(949) 555-0142',address:'18 Willow Court, Irvine, CA',locality:'Church in Irvine',yearsInChurch:8,ftta:FTTA[0],service:['Children’s work','Hospitality'],serviceNotes:'I help coordinate the children’s meetings on the Lord’s Day and enjoy hosting dinners for new ones.',citizenship:'U.S. citizen',visa:'Not applicable',marriageStatus:'Single',everMarried:EVER[0],children:CHILDREN[0],timeline:TIMELINE[1],relocate:'Possibly',healthSummary:HEALTH[0],additionalInfo:'I grew up in San Gabriel and moved to Irvine for nursing school. I’m close with my parents and younger brother.',lookingFor:'Someone steady who loves the Lord and the church, is honest with himself and others, and would enjoy an open home.'}],
+   ['u2','esther.park@example.org','Sister',{firstName:'Esther',lastName:'Park',birthMonth:7,birthYear:1994,nationality:'American',heightCm:165,education:EDU[3],study:'Statistics',job:'Data analyst',city:'Seattle',state:'WA',languages:['English','Korean'],energy:2,traits:['Thoughtful','Organized','Curious'],values:['Diligence','Humility','Teachable'],hobbies:['Reading','Piano','Running'],lifestyle:['Early riser','Active / outdoors'],phone:'(206) 555-0177',locality:'Church in Seattle',yearsInChurch:11,ftta:FTTA[0],service:['Campus work','Music'],serviceNotes:'I serve with the campus sisters at UW and play piano for the Lord’s table meeting.',citizenship:'U.S. citizen',visa:'Not applicable',marriageStatus:'Single',everMarried:EVER[0],children:CHILDREN[0],timeline:TIMELINE[0],relocate:'Yes',healthSummary:HEALTH[0],lookingFor:'A brother who is consistent in his spiritual life, communicates openly, and is gentle at home.'}],
+   ['u3','hannah.zhang@example.org','Sister',{firstName:'Hannah',lastName:'Zhang',chineseName:'张汉娜',birthMonth:11,birthYear:1998,nationality:'Chinese',heightCm:160,education:EDU[4],study:'Pharmacy (PharmD candidate)',job:'Pharmacy student',city:'Austin',state:'TX',languages:['English','Mandarin'],energy:4,traits:['Outgoing','Joyful','Curious'],values:['Generosity','Teachable','Service'],hobbies:['Badminton','Travel','Baking'],lifestyle:['Night owl','Urban'],locality:'Church in Austin',yearsInChurch:4,ftta:FTTA[2],service:['Young people'],citizenship:'Chinese citizen',visa:'F-1 student visa',marriageStatus:'Single',everMarried:EVER[0],children:CHILDREN[1],timeline:TIMELINE[2],relocate:'Yes',healthSummary:HEALTH[0],lookingFor:'Someone patient and grounded who enjoys serving the young people.'}],
+   ['u4','lydia.adeyemi@example.org','Sister',{firstName:'Lydia',lastName:'Adeyemi',birthMonth:2,birthYear:1993,nationality:'American',heightCm:170,education:EDU[3],study:'Architecture',job:'Architect',city:'Houston',state:'TX',languages:['English','Yoruba'],energy:4,traits:['Warm','Decisive','Creative'],values:['Hospitality','Diligence','Generosity'],hobbies:['Cooking','Travel','Photography'],lifestyle:['Active / outdoors','Urban'],locality:'Church in Houston',yearsInChurch:13,ftta:FTTA[0],service:['Gospel preaching','Hospitality'],citizenship:'U.S. citizen',visa:'Not applicable',marriageStatus:'Single',everMarried:EVER[0],children:CHILDREN[0],timeline:TIMELINE[0],relocate:'Possibly',healthSummary:HEALTH[0],lookingFor:'A brother who loves people and would enjoy an active, hospitable home.'}],
+   ['u5','abigail.tran@example.org','Sister',{firstName:'Abigail',lastName:'Tran',birthMonth:9,birthYear:1995,nationality:'American',heightCm:158,education:EDU[2],study:'Education',job:'Elementary school teacher',city:'Anaheim',state:'CA',languages:['English','Vietnamese'],energy:3,traits:['Gentle','Patient','Humorous'],values:['Patience','Family-oriented','Frugality'],hobbies:['Gardening','Guitar','Board games'],lifestyle:['Homebody','Suburban'],locality:'Church in Anaheim',yearsInChurch:9,ftta:FTTA[0],service:['Children’s work','Translation'],citizenship:'U.S. citizen',marriageStatus:'Single',everMarried:EVER[0],children:CHILDREN[0],timeline:TIMELINE[1],relocate:'No',healthSummary:HEALTH[0],lookingFor:'Someone kind, steady and family-minded, who can laugh at himself.'}],
+   ['u6','miriam.hsu@example.org','Sister',{firstName:'Miriam',lastName:'Hsu',chineseName:'许米利暗',birthMonth:5,birthYear:1991,nationality:'American',heightCm:162,education:EDU[3],study:'Business (MBA)',job:'Marketing manager',city:'Dallas',state:'TX',languages:['English','Mandarin','Taiwanese'],energy:2,traits:['Steady','Dependable','Thoughtful'],values:['Honesty','Frugality','Diligence'],hobbies:['Reading','Baking','Hiking'],lifestyle:['Early riser','Simple living'],locality:'Church in Dallas',yearsInChurch:14,ftta:FTTA[2],service:['Care for elderly saints','Cleaning & maintenance'],citizenship:'U.S. citizen',marriageStatus:'Single',everMarried:EVER[0],children:CHILDREN[1],timeline:TIMELINE[2],relocate:'Possibly',healthSummary:HEALTH[1],healthDetail:'Mild asthma, well controlled with an inhaler.',lookingFor:'A brother who is mature, patient and committed to the church life over the long term.'}],
+   ['u7','daniel.chen@example.org','Brother',{firstName:'Daniel',lastName:'Chen',chineseName:'陈大卫',birthMonth:4,birthYear:1995,nationality:'American',heightCm:178,education:EDU[3],study:'Computer science',job:'Software engineer',city:'Irvine',state:'CA',languages:['English','Mandarin'],energy:2,traits:['Thoughtful','Steady','Organized'],values:['Honesty','Diligence','Humility'],hobbies:['Hiking','Piano','Cooking'],lifestyle:['Early riser','Active / outdoors','Simple living'],phone:'(949) 555-0188',locality:'Church in Irvine',yearsInChurch:9,ftta:FTTA[0],service:['Young people','Campus work'],serviceNotes:'I serve with the high schoolers on Friday nights and help with the UCI campus Bible study.',citizenship:'U.S. citizen',visa:'Not applicable',marriageStatus:'Single',everMarried:EVER[0],children:CHILDREN[0],timeline:TIMELINE[1],relocate:'Possibly',healthSummary:HEALTH[0],additionalInfo:'Eldest of three. My parents are in the church in Hacienda Heights.',lookingFor:'A sister who loves the Lord, is honest and warm, and would enjoy building an open home together.'}],
+   ['u8','samuel.okafor@example.org','Brother',{firstName:'Samuel',lastName:'Okafor',birthMonth:8,birthYear:1992,nationality:'American',heightCm:183,education:EDU[2],study:'Civil engineering',job:'Civil engineer',city:'Houston',state:'TX',languages:['English','Igbo'],energy:4,traits:['Warm','Outgoing','Decisive'],values:['Hospitality','Generosity','Diligence'],hobbies:['Soccer','Cooking','Travel'],lifestyle:['Active / outdoors','Urban'],locality:'Church in Houston',yearsInChurch:12,ftta:FTTA[0],service:['Gospel preaching','Hospitality'],citizenship:'U.S. citizen',marriageStatus:'Single',everMarried:EVER[0],children:CHILDREN[0],timeline:TIMELINE[0],relocate:'Yes',healthSummary:HEALTH[0],lookingFor:'A sister with a heart for people and the gospel.'}],
+   ['u9','joshua.lin@example.org','Brother',{firstName:'Joshua',lastName:'Lin',chineseName:'林约书亚',birthMonth:1,birthYear:1997,nationality:'American',heightCm:175,education:EDU[2],study:'Design',job:'Product designer',city:'San Jose',state:'CA',languages:['English','Mandarin','Cantonese'],energy:3,traits:['Creative','Gentle','Curious'],values:['Patience','Teachable','Humility'],hobbies:['Photography','Guitar','Coffee'],lifestyle:['Night owl','Urban'],locality:'Church in San Jose',yearsInChurch:5,ftta:FTTA[2],service:['Children’s work','Music'],citizenship:'U.S. citizen',marriageStatus:'Single',everMarried:EVER[0],children:CHILDREN[1],timeline:TIMELINE[1],relocate:'Possibly',healthSummary:HEALTH[0],lookingFor:'A sister who is gentle and patient, and enjoys simple things.'}],
+   ['u10','andrew.kim@example.org','Brother',{firstName:'Andrew',lastName:'Kim',birthMonth:12,birthYear:1990,nationality:'American',heightCm:180,education:EDU[4],study:'Medicine',job:'Family physician',city:'Seattle',state:'WA',languages:['English','Korean'],energy:2,traits:['Steady','Patient','Thoughtful'],values:['Diligence','Honesty','Family-oriented'],hobbies:['Running','Reading','Chess'],lifestyle:['Early riser','Active / outdoors'],locality:'Church in Seattle',yearsInChurch:15,ftta:FTTA[0],service:['Care for elderly saints','Campus work'],citizenship:'U.S. citizen',marriageStatus:'Single',everMarried:EVER[2],children:CHILDREN[0],timeline:TIMELINE[0],relocate:'Possibly',healthSummary:HEALTH[0],additionalInfo:'My wife passed away in 2021. I’m grateful for the saints who cared for me, and I’m ready to consider marriage again.',lookingFor:'A sister who is steady in the Lord and values family life.'}],
+   ['u11','timothy.wu@example.org','Brother',{firstName:'Timothy',lastName:'Wu',chineseName:'吴提摩太',birthMonth:6,birthYear:1994,nationality:'American',heightCm:172,education:EDU[2],study:'Accounting',job:'Accountant (CPA)',city:'Dallas',state:'TX',languages:['English','Mandarin'],energy:3,traits:['Organized','Dependable','Humorous'],values:['Frugality','Honesty','Faithfulness'],hobbies:['Badminton','Board games','Baking'],lifestyle:['Homebody','Simple living'],locality:'Church in Dallas',yearsInChurch:7,ftta:FTTA[3],service:['Cleaning & maintenance','Translation'],citizenship:'Permanent resident',visa:'Green card holder',marriageStatus:'Single',everMarried:EVER[0],children:CHILDREN[0],timeline:TIMELINE[2],relocate:'Yes',healthSummary:HEALTH[0],lookingFor:'A sister who is honest, faithful in small things, and enjoys a quiet home.'}],
+   ['u12','matthew.reyes@example.org','Brother',{firstName:'Matthew',lastName:'Reyes',birthMonth:10,birthYear:1993,nationality:'American',heightCm:176,education:EDU[3],study:'Education',job:'High school teacher',city:'Los Angeles',state:'CA',languages:['English','Spanish'],energy:4,traits:['Warm','Patient','Humorous'],values:['Patience','Generosity','Family-oriented'],hobbies:['Basketball','Guitar','Hiking'],lifestyle:['Active / outdoors','Suburban'],locality:'Church in Los Angeles',yearsInChurch:10,ftta:FTTA[0],service:['Young people','Music'],citizenship:'U.S. citizen',marriageStatus:'Single',everMarried:EVER[0],children:CHILDREN[0],timeline:TIMELINE[1],relocate:'Possibly',healthSummary:HEALTH[0],lookingFor:'A sister who loves young people and doesn’t mind a loud, happy household.'}]
+  ];
+  for(const[id,email,gender,p]of people){
+    const s=salt();db.users.push({id,email,role:'user',status:'active',salt:s,hash:await hashPw(PW,s),createdAt:t-60*DAY});
+    db.profiles[id]={...p,gender,status:id==='u3'?'submitted':'approved',vis:{},hidden:false,step:6,createdAt:t-60*DAY,updatedAt:t-20*DAY,submittedAt:t-(id==='u3'?1:30)*DAY};
+    const age=ageOf(p),sis=gender==='Sister';
+    const items={
+      age:{level:'strong',value:sis?[Math.max(18,age-2),age+6]:[Math.max(18,age-6),age+2]},
+      faithYears:{level:'essential',value:3},
+      ftta:{level:'preference',value:FTTA.slice(0,3)},
+      children:{level:p.children===CHILDREN[0]?'essential':'preference',value:[CHILDREN[0],CHILDREN[1]]},
+      values:{level:'strong',value:p.values},
+      languages:{level:'essential',value:['English']},
+      location:{level:'flexible',value:[p.state]},
+      serving:{level:'preference',value:true}
+    };
+    if(id==='u1')items.married={level:'strong',value:[EVER[0]]};
+    if(id==='u2')items.ftta={level:'strong',value:FTTA.slice(0,2)};
+    if(id==='u7'){items.married={level:'preference',value:[EVER[0]]};items.education={level:'preference',value:EDU[2]};items.traits={level:'preference',value:['Warm','Patient','Attentive']}}
+    if(id==='u5')items.location={level:'strong',value:['CA']};
+    db.criteria[id]={items,note:'',share:true};
+  }
+  for(const[id,email,name,role]of[['u13','ruth.wang@example.org','Ruth Wang','matchmaker'],['u14','stephen.ho@example.org','Stephen Ho','admin']]){const s=salt();db.users.push({id,email,name,role,status:'active',salt:s,hash:await hashPw(PW,s),createdAt:t-200*DAY})}
+  db.interests.push({from:'u7',to:'u1',kind:'interest',at:t-2*DAY},{from:'u6',to:'u11',kind:'interest',at:t-4*DAY},
+    {from:'u9',to:'u5',kind:'interest',at:t-13*DAY},{from:'u5',to:'u9',kind:'interest',at:t-12*DAY},
+    {from:'u8',to:'u4',kind:'interest',at:t-4*DAY},{from:'u4',to:'u8',kind:'interest',at:t-3*DAY},
+    {from:'u10',to:'u2',kind:'interest',at:t-7*DAY},{from:'u2',to:'u10',kind:'interest',at:t-6*DAY});
+  const H=(st,d,txt,by)=>({at:t-d*DAY,status:st,by:by||'u13',text:txt||'',pub:true});
+  db.intros.push(
+    {id:'i1',a:'u5',b:'u9',status:'connected',createdAt:t-12*DAY,updatedAt:t-2*DAY,accepted:{u5:true,u9:true},proposalNote:'Joshua and Abigail both serve in the children’s work and describe themselves as gentle and patient. Ruth thought they might enjoy a conversation.',progress:{stage:PROGRESS[0],history:[]},lastRead:{u9:t,u5:t-8*DAY},history:[H('pending',12,'Mutual interest','system'),H('reviewing',11),H('proposed',10),H('accepted',9,'Both accepted','system'),H('connected',9)]},
+    {id:'i2',a:'u4',b:'u8',status:'reviewing',createdAt:t-3*DAY,updatedAt:t-2*DAY,accepted:{},proposalNote:'',progress:{stage:PROGRESS[0],history:[]},lastRead:{},history:[H('pending',3,'Mutual interest','system'),H('reviewing',2)]},
+    {id:'i3',a:'u2',b:'u10',status:'proposed',createdAt:t-6*DAY,updatedAt:t-1*DAY,accepted:{u2:true},proposalNote:'Esther and Andrew both meet in Seattle and have served on campus for many years. Both value a steady, ordered home life. Take whatever time you need to respond.',progress:{stage:PROGRESS[0],history:[]},lastRead:{},history:[H('pending',6,'Mutual interest','system'),H('reviewing',5),H('proposed',4)]}
+  );
+  const M=(f,d,h,txt)=>({id:'m'+(db.messages.length+1),introId:'i1',from:f,at:t-d*DAY+h*36e5,text:txt});
+  db.messages.push(
+    M('u9',9,2,'Hi Abigail, thank you for accepting the introduction. Ruth mentioned you serve with the children in Anaheim. How long have you been doing that?'),
+    M('u5',9,5,'Hi Joshua! About six years now. The elementary group is my favorite. I saw that you play guitar. Do you ever play for the children’s meetings?'),
+    M('u9',8,1,'Sometimes, for the little ones on the Lord’s Day. They’re honest critics. Would you be open to a phone call this weekend?'),
+    M('u5',8,3,'Yes, Saturday afternoon works. My sister may join for the first few minutes, if that’s alright.'),
+    M('u9',2,0,'Of course. Thank you again for Saturday. I’d be glad to visit the Anaheim meeting sometime, if you think that’s appropriate.'));
+  db.notes.push({id:'note1',subject:'intro:i2',authorId:'u13',text:'Both serve in hospitality in Houston. Spoke briefly with a sister who knows Lydia well. Plan a short call with each before proposing.',at:t-2*DAY},
+    {id:'note2',subject:'user:u3',authorId:'u13',text:'First review: confirm with Hannah by phone that her visa details are current before approving.',at:t-1*DAY});
+  db.reports.push({id:'r1',by:'u4',target:'u11',reason:'His profile photo looks like it could be a stock image rather than a real picture of him.',status:'open',at:t-5*DAY});
+  const N=(uid,d,text,link,read)=>db.notifs.push({id:'n'+(db.notifs.length+1),uid,text,link:link||null,at:t-d*DAY,read:!!read});
+  N('u1',30,'Your profile was approved. You can now discover and express interest.',{view:'discover'},true);
+  N('u9',9,'You and Abigail are connected. Your private conversation is open.',{view:'thread',params:{id:'i1'}},true);
+  N('u5',2,'New message from Joshua.',{view:'thread',params:{id:'i1'}},false);
+  N('u2',4,'A matchmaker has proposed an introduction with Andrew.',{view:'connections'},true);
+  N('u10',4,'A matchmaker has proposed an introduction with Esther. Read the note and respond when you’re ready.',{view:'connections'},false);
+  N('u13',3,'Lydia and Samuel expressed mutual interest.',{view:'mmIntro',params:{id:'i2'}},false);
+  N('u13',1,'Hannah submitted a profile for review.',{view:'mmReview',params:{uid:'u3'}},false);
+  N('u13',1,'Esther accepted the proposed introduction with Andrew.',{view:'mmIntro',params:{id:'i3'}},false);
+  N('u14',5,'A new report needs review.',{view:'admin',params:{tab:'reports'}},false);
+  return db;
+}
+
+/* ============================== AI assistance (guard-railed) ============================== */
+let samplePromise=null,sampleBroken=false;
+function getSample(){if(sampleBroken)return Promise.resolve(null);if(samplePromise)return samplePromise;
+  if(!window.claude||typeof window.claude.use!=='function')return(samplePromise=Promise.resolve(null));
+  samplePromise=Promise.race([window.claude.use('sample').catch(()=>null),new Promise(r=>setTimeout(()=>r(null),6000))]);return samplePromise}
+const FORBIDDEN=/soul ?mate|meant to be|meant for each other|(should|must|ought to) (marry|get married|be together)|god'?s will for (you|the two)|perfect match|(great|good|bad|ideal|perfect) match|destined|the one for you|red flag/i;
+function aiPrompt(kind,ctx){
+  const T=ctx.them.firstName;
+  const rules='You are a writing aid inside "Consider", a private introduction service for brothers and sisters in the church life. Strict rules: Do not act as a spiritual authority, give spiritual direction, or quote scripture as advice. Do not judge, rate or infer anyone’s character, spirituality or suitability. Do not say or imply whether two people should marry, are meant for each other, or are a good or bad match, and do not predict outcomes. Use only the facts provided and never invent details. Write warm, plain, neutral English. No headings, no emoji, no markdown other than "- " bullets when asked. Under 130 words.';
+  const task={summary:`Summarize ${T}’s profile for the viewer in 3 or 4 sentences, using only what ${T} shared.`,
+    topics:`Suggest 4 discussion topics the viewer and ${T} could explore together, drawn from the alignment notes. Write each as an open question on its own line starting with "- ".`,
+    starters:`Suggest 4 natural, respectful first-message openers the viewer could send ${T}, drawn from things they actually share or from ${T}’s profile. Each on its own line starting with "- ".`,
+    explain:`In 3 or 4 sentences, explain in plain language where the two profiles align, where they differ, and what might be worth discussing, using only the alignment notes. Do not give an overall verdict or score.`}[kind];
+  const notes=ctx.compat?{strong_alignment:ctx.compat.sections.strong.map(x=>x.text),potential_differences:ctx.compat.sections.diff.map(x=>x.text),worth_discussing:ctx.compat.sections.discuss.map(x=>x.text)}:null;
+  return`${rules}\n\nTask: ${task}\n\n${T}’s profile (only what the viewer is allowed to see):\n${JSON.stringify(ctx.them)}\n\n${ctx.me?`The viewer’s profile (only what ${T} is allowed to see):\n${JSON.stringify(ctx.me)}\n\n`:''}${notes?`Alignment notes:\n${JSON.stringify(notes)}`:''}`;
+}
+function aiFallback(kind,ctx){
+  const t=ctx.them,T=t.firstName,P=pro(t),c=ctx.compat,v=ctx.me||{};
+  if(kind==='summary'){const s=[];
+    s.push(`${T} is in ${P.pos} ${t.ageBand?t.ageBand.label.toLowerCase():'adult years'}${t.city?`, lives in ${t.city}, ${t.state}`:''}${t.job?`, and works as ${/^[aeiou]/i.test(t.job)?'an':'a'} ${lcFirst(t.job)}`:''}.`);
+    if(t.locality)s.push(`${P.Sub} meets with the ${t.locality}${isNum(t.yearsInChurch)?` and has been in the church life about ${t.yearsInChurch} years`:''}${t.ftta&&FTTA_RANK[t.ftta]?`; ${P.sub} ${['has completed the full-time training','is currently in the full-time training','has attended short-term trainings','hasn’t attended the full-time training yet'][FTTA.indexOf(t.ftta)]}`:''}.`);
+    if(t.service&&t.service.length)s.push(`${P.Sub} serves in ${list(t.service.map(lcFirst))}.`);
+    if(t.traits)s.push(`${P.Sub} describes ${P.obj}self as ${list(t.traits.map(lcFirst))}${t.hobbies&&t.hobbies.length?` and enjoys ${list(t.hobbies.map(lcFirst))}`:''}.`);
+    if(t.lookingFor)s.push(`In ${P.pos} words, ${P.sub}’s looking for: “${t.lookingFor}”`);
+    return s.join(' ')}
+  if(kind==='topics'){const out=[];
+    if(t.children&&v.children&&t.children!==v.children)out.push('How do each of you picture family life and children?');
+    if(t.locality&&v.locality&&t.locality!==v.locality)out.push(`How would you each like to serve in the church life after marriage, given you meet in ${v.locality} and ${t.locality}?`);
+    if(t.state&&v.state&&t.state!==v.state)out.push('How do you each think about where to live and the possibility of relocating?');
+    if(t.everMarried&&t.everMarried!==EVER[0])out.push(`What would ${T} like you to understand about ${P.pos} story, when ${P.sub}’s ready to share it?`);
+    if(t.service&&t.service.length)out.push(`What has serving in ${lcFirst(t.service[0])} been like for ${T}?`);
+    out.push('What does a normal week look like for each of you, and what would you hope to keep after marriage?');
+    out.push('How were your families’ homes run growing up, and what would you carry forward?');
+    out.push('How do you each like to handle disagreements?');
+    return out.slice(0,4).map(x=>'- '+x).join('\n')}
+  if(kind==='starters'){const out=[];const sh=inter(v.hobbies,t.hobbies);
+    if(sh.length)out.push(`You both enjoy ${lcFirst(sh[0])}. Is there a favorite spot or routine you return to?`);
+    if(t.service&&t.service.length)out.push(`I noticed you serve in ${lcFirst(t.service[0])}. How did you start?`);
+    if(t.locality)out.push(`What’s something you appreciate about the saints in the ${t.locality}?`);
+    if(t.job)out.push(`What do you enjoy most about your work as ${/^[aeiou]/i.test(t.job)?'an':'a'} ${lcFirst(t.job)}?`);
+    if(t.hobbies&&t.hobbies.length&&!sh.length)out.push(`Your profile mentions ${lcFirst(t.hobbies[0])}. What drew you to it?`);
+    out.push('Thank you for being open to this introduction. What would make a first conversation comfortable for you?');
+    return out.slice(0,4).map(x=>'- '+x).join('\n')}
+  if(kind==='explain'){if(!c)return`This is ${T}’s profile as members see it.`;const s=[];
+    if(c.sections.strong.length)s.push(`You align most clearly in ${list([...new Set(c.sections.strong.map(x=>x.cat))].slice(0,3).map(lcFirst))}.`);
+    if(c.sections.diff.length)s.push(`The profiles differ in ${list([...new Set(c.sections.diff.map(x=>x.cat))].slice(0,3).map(lcFirst))}, which may or may not matter to either of you.`);
+    if(c.sections.discuss.length)s.push(`Areas such as ${list([...new Set(c.sections.discuss.map(x=>x.cat))].slice(0,3).map(lcFirst))} are open questions best explored in conversation.`);
+    s.push('These notes come only from what each of you shared. They describe; they don’t decide.');return s.join(' ')}
+  return'';
+}
+async function runAI(kind,targetId){
+  const ctx=await API.aiContext(targetId);
+  const sample=await getSample();
+  if(sample){try{const r=await sample(aiPrompt(kind,ctx),{modelTier:'quick'});const text=(r&&r.text||'').trim();if(text&&!FORBIDDEN.test(text))return{text,source:'ai'}}catch(e){if(e&&(e.code==='not_granted'||e.code==='unavailable'))sampleBroken=true}}
+  return{text:aiFallback(kind,ctx),source:'guide'};
+}
+
+/* ============================== UI infrastructure ============================== */
+const S={view:'boot',params:{},user:null,settings:null,token:0,filters:{essentials:false,state:'',age:''},wiz:{errors:{},photo:undefined}};
+const $=s=>document.querySelector(s);
+const app=$('#app');
+const ICON={
+  discover:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>',
+  connections:'<svg viewBox="0 0 24 24"><circle cx="8" cy="9" r="3.2"/><circle cx="16" cy="9" r="3.2"/><path d="M3 19c.8-3 2.8-4.5 5-4.5s4.2 1.5 5 4.5M11 19c.8-3 2.8-4.5 5-4.5s4.2 1.5 5 4.5"/></svg>',
+  me:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1-4 4-6 7.5-6s6.5 2 7.5 6"/></svg>',
+  notifs:'<svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 004 0"/></svg>',
+  mm:'<svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>',
+  admin:'<svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg>'
+};
+const LOCK='<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>';
+
+function navItems(){const r=S.user&&S.user.role;
+  if(r==='user')return[['discover','Discover'],['connections','Connections'],['me','Profile'],['notifs','Updates']];
+  if(r==='matchmaker')return[['mm','Dashboard'],['notifs','Updates']];
+  if(r==='admin')return[['mm','Matchmaking'],['admin','Admin'],['notifs','Updates']];return[]}
+const section=v=>({person:'discover',thread:'connections',setup:'me',preview:'me',mmReview:'mm',mmIntro:'mm'}[v]||v);
+
+function renderShell(){
+  if(!S.user){app.innerHTML=`<header class="top"><div class="top-in"><button class="brand" data-go="auth"><b>Consider</b><span>Find someone worth getting to know.</span></button></div></header><main class="main wide" id="main"></main>`;return}
+  const items=navItems(),cur=section(S.view);
+  const wide=['mm','mmIntro','admin'].includes(S.view);
+  const btn=(cls)=>items.map(([v,l])=>`<button data-go="${v}" ${cur===v?'aria-current="page"':''}>${ICON[v]}<span>${l}</span>${v==='notifs'?'<span class="badge-n" data-unread hidden></span>':''}</button>`).join('');
+  app.innerHTML=`<header class="top"><div class="top-in"><button class="brand" data-go="${items[0][0]}"><b>Consider</b><span>Find someone worth getting to know.</span></button><nav class="topnav" aria-label="Main">${btn()}</nav></div></header>
+  <main class="main ${wide?'wide':''}" id="main"></main><nav class="tabbar" aria-label="Main">${btn()}</nav>`;
+  API.unreadCount().then(n=>document.querySelectorAll('[data-unread]').forEach(b=>{b.hidden=!n;b.textContent=n>9?'9+':n})).catch(()=>{});
+}
+function skeleton(){return`<div class="stack" aria-busy="true" aria-label="Loading"><div class="skel" style="height:34px;width:46%"></div><div class="skel" style="height:16px;width:72%"></div><div class="skel" style="height:180px"></div><div class="skel" style="height:180px"></div></div>`}
+function errorState(e){const auth=e&&e.code==='auth';return`<div class="empty"><h3>${auth?'Please sign in':'Something didn’t load'}</h3><p>${esc(e&&e.message||'An unexpected error occurred.')}</p>${auth?'<button class="btn" data-go="auth">Go to sign in</button>':'<button class="btn ghost" data-act="reload">Try again</button>'}</div>`}
+
+async function go(view,params={},opts={}){
+  S.view=view;S.params=params;
+  if(view!=='setup')S.wiz={errors:{},photo:undefined};
+  renderShell();
+  const main=$('#main'),token=++S.token;
+  if(!opts.keep)main.innerHTML=skeleton();
+  try{const html=await VIEWS[view](params);if(token!==S.token)return;main.innerHTML=html;if(!opts.keepScroll)window.scrollTo(0,0);AFTER[view]&&AFTER[view](params)}
+  catch(e){if(token!==S.token)return;console.error(e);if(e.code==='auth'){S.user=null;return go('auth')}main.innerHTML=errorState(e)}
+}
+const refresh=()=>go(S.view,S.params,{keep:true,keepScroll:true});
+
+function toast(msg,o={}){const el=document.createElement('div');el.className='toast'+(o.bad?' bad':'');el.innerHTML=`<span>${esc(msg)}</span>${o.action?`<button>${esc(o.action)}</button>`:''}`;$('#toasts').appendChild(el);
+  if(o.action)el.querySelector('button').onclick=()=>{el.remove();o.onAction()};setTimeout(()=>el.remove(),o.action?6000:3500)}
+function fail(e){if(e&&e.code==='auth'){S.user=null;go('auth');return}toast(e&&e.message||'Something went wrong.',{bad:true})}
+
+function modal({title,body,confirm='Confirm',cancel='Cancel',danger=false,onConfirm}){
+  const ov=document.createElement('div');ov.className='overlay';
+  ov.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt"><h2 id="mt">${esc(title)}</h2><div class="stack">${body||''}</div><p class="err" data-merr hidden></p><div class="modal-foot"><button class="btn ghost" data-m="cancel">${esc(cancel)}</button><button class="btn ${danger?'danger':''}" data-m="ok">${esc(confirm)}</button></div></div>`;
+  document.body.appendChild(ov);const okb=ov.querySelector('[data-m=ok]');const close=()=>{ov.remove();document.removeEventListener('keydown',kd)};
+  const kd=e=>{if(e.key==='Escape')close()};document.addEventListener('keydown',kd);
+  ov.addEventListener('click',e=>{if(e.target===ov||e.target.dataset.m==='cancel')close()});
+  okb.onclick=async()=>{okb.disabled=true;try{const r=await onConfirm(ov);if(r!==false)close()}catch(e){const m=ov.querySelector('[data-merr]');m.hidden=false;m.textContent=e.message||'Something went wrong.'}finally{okb.disabled=false}};
+  const f=ov.querySelector('input,textarea,select');(f||okb).focus();
+}
+
+/* ============================== Shared view pieces ============================== */
+function pstatusPill(s){const[l,c]=PSTATUS[s]||['—',''];return`<span class="pill ${c}">${l}</span>`}
+function introPill(s){const c={pending:'',reviewing:'navy',proposed:'warn',accepted:'navy',connected:'ok',closed:''}[s];return`<span class="pill ${c}">${STATUS_LABEL[s]}</span>`}
+function stepsBar(status){if(status==='closed')return`<p class="small muted">This introduction is closed.</p>`;const idx=STATUS_FLOW.indexOf(status);return`<ol class="steps" aria-label="Introduction progress">${STATUS_FLOW.map((s,i)=>`<li class="${i<idx?'done':i===idx?'cur':''}">${STATUS_LABEL[s]}</li>`).join('')}</ol>`}
+function factsDL(p){const rows=[];
+  if(p.locality)rows.push(['Church',`${p.locality}${isNum(p.yearsInChurch)?` · ${p.yearsInChurch} yrs`:''}`]);
+  if(p.ftta)rows.push(['Training',p.ftta]);
+  if(p.education)rows.push(['Education',`${p.education}${p.study?`, ${p.study}`:''}`]);
+  if(p.job)rows.push(['Work',p.job]);
+  return`<dl class="facts">${rows.map(([a,b])=>`<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join('')}</dl>`}
+function where(p){return[p.city,p.state].filter(Boolean).join(', ')}
+function profileCard(c,opts={}){const p=c.profile;
+  return`<article class="pcard" aria-label="${esc(p.firstName)}">
+   <div class="pc-photo"><img src="${photoOf(p)}" alt="${p.photo?'Photo of '+esc(p.firstName):''}">${p.photoWithheld?'<span class="withheld">Photo shared after connecting</span>':''}</div>
+   <div class="pc-body">
+     <div class="pc-name"><h3>${esc(p.firstName)}</h3>${p.chineseName?`<span class="muted">${esc(p.chineseName)}</span>`:''}</div>
+     <p class="small muted">${esc([p.ageBand&&p.ageBand.label,where(p)].filter(Boolean).join(' · '))}</p>
+     ${factsDL(p)}
+     ${p.traits?`<p class="tagline">${esc(p.traits.join(' · '))}</p>`:''}
+     ${p.hobbies&&p.hobbies.length?`<p class="small muted">Enjoys ${esc(list(p.hobbies.map(lcFirst)))}</p>`:''}
+     ${c.essentials&&c.essentials.length?`<div class="ess"><span class="label">Essential to ${pro(p).obj}</span>${c.essentials.slice(0,4).map(e=>`<span class="t" title="${esc(e.value)}">${esc(e.label.replace(/ \(at least\)/,''))}</span>`).join('')}</div>`:''}
+     ${c.top&&c.top.length?`<p class="align-hint">Strong alignment in ${esc(list(c.top.map(lcFirst)))}</p>`:''}
+   </div>
+   <div class="pc-actions">
+     <button class="btn ghost" data-go="person" data-p='${JSON.stringify({id:p.id})}'>View profile</button>
+     ${c.interested?`<button class="btn ghost" data-act="withdraw" data-id="${p.id}">Interest expressed · Withdraw</button>`:`<button class="btn" data-act="interest" data-id="${p.id}" data-name="${esc(p.firstName)}" ${opts.canInterest?'':'disabled title="Available once your profile is approved"'}>Express interest</button>`}
+     <button class="btn quiet" data-act="pass" data-id="${p.id}" data-name="${esc(p.firstName)}">Pass</button>
+   </div></article>`}
+
+function kvRows(rows){rows=rows.filter(r=>r[1]!=null&&r[1]!==''&&!(Array.isArray(r[1])&&!r[1].length));if(!rows.length)return'';return`<dl class="kv">${rows.map(([k,v,priv])=>`<dt>${esc(k)}${priv?`<span class="private-tag">${esc(priv)}</span>`:''}</dt><dd>${esc(Array.isArray(v)?v.join(', '):v)}</dd>`).join('')}</dl>`}
+function privTag(p,k){if(!p.vis)return null;const l=p.vis[k];return l==='private'?'Private':l==='connected'?'Connections':null}
+function profileBody(p){
+  const t=k=>privTag(p,k);
+  const about=kvRows([['Age',isNum(p.age)?`${p.age}`:(p.ageBand&&p.ageBand.label),t('birth')],['Lives in',where(p),t('city')],['Nationality',p.nationality,t('nationality')],['Height',isNum(p.heightCm)?`${p.heightCm} cm (${ftIn(p.heightCm)})`:null,t('heightCm')],['Education',p.education?`${p.education}${p.study?`, ${p.study}`:''}`:null,t('education')],['Work',p.job,t('job')],['Languages',p.languages,t('languages')],['Social energy',isNum(p.energy)?ENERGY[p.energy-1]:null,t('energy')],['Personality',p.traits,t('traits')],['Values',p.values,t('values')],['Hobbies',p.hobbies,t('hobbies')],['Lifestyle',p.lifestyle,t('lifestyle')]]);
+  const faith=kvRows([['Church locality',p.locality,t('locality')],['Years in the church life',p.yearsInChurch,t('yearsInChurch')],['Full-time training',p.ftta,t('ftta')],['Serves in',p.service,t('service')]]);
+  const life=kvRows([['Marital status',p.marriageStatus,t('marriageStatus')],['Married before',p.everMarried,t('everMarried')],['Children',p.children,t('children')],['Timeline',p.timeline,t('timeline')],['Open to relocating',p.relocate,t('relocate')],['Citizenship',p.citizenship,t('citizenship')],['Visa status',p.visa,t('visa')]]);
+  const health=kvRows([['Health',p.healthSummary,t('healthSummary')],['Details',p.healthDetail,t('healthDetail')]]);
+  const contact=kvRows([['Email',p.email,t('email')],['Phone',p.phone,t('phone')],['Address',p.address,t('address')]]);
+  const crit=p.criteria&&Object.keys(p.criteria.items).length?`<div class="stack">${['essential','strong','preference','flexible'].map(l=>{const its=Object.entries(p.criteria.items).filter(([,x])=>x.level===l);return its.length?`<div><p class="label">${LEVELS[l].label}</p><ul style="margin:6px 0 0;padding-left:18px">${its.map(([k,x])=>`<li>${esc(CRITD[k].label)}: <span class="muted">${esc(crValueText(CRITD[k],x.value))}</span></li>`).join('')}</ul></div>`:''}).join('')}${p.criteria.note?`<p class="small">${esc(p.criteria.note)}</p>`:''}</div>`:'';
+  return`${p.lookingFor?`<section class="section"><h2>What ${esc(p.firstName)} is looking for</h2><p class="quote">${esc(p.lookingFor)}</p></section>`:''}
+   <section class="section"><h2>About</h2>${about||'<p class="muted">Nothing shared.</p>'}${p.additionalInfo?`<p>${esc(p.additionalInfo)}</p>`:''}</section>
+   ${faith||p.serviceNotes?`<section class="section"><h2>Faith & church life</h2>${faith}${p.serviceNotes?`<p>${esc(p.serviceNotes)}</p>`:''}</section>`:''}
+   ${life?`<section class="section"><h2>Life circumstances</h2>${life}</section>`:''}
+   ${health?`<section class="section"><h2>Health</h2>${health}</section>`:''}
+   ${contact?`<section class="section"><h2>Contact</h2>${contact}</section>`:''}
+   ${crit?`<section class="section"><h2>Marriage criteria</h2>${crit}</section>`:''}`;
+}
+function compatHTML(c,name){
+  const g=(cls,title,items,empty)=>`<div class="cgroup ${cls}"><h3>${title}</h3>${items.length?`<ul>${items.map(i=>`<li><b>${esc(i.title)}</b><p>${esc(i.text)}</p></li>`).join('')}</ul>`:`<p class="small muted">${empty}</p>`}</div>`;
+  return`<section class="section" aria-labelledby="ch"><div><h2 id="ch">How you and ${esc(name)} might align</h2><p class="small muted" style="margin-top:6px">Drawn only from what each of you chose to share. These notes describe; they don’t decide.</p></div>
+  <div class="compat">${g('strong','Strong alignment',c.sections.strong,'Nothing stood out as clearly shared yet.')}${g('diff','Potential differences',c.sections.diff,'No clear differences in what you’ve both shared.')}${g('discuss','Worth discussing',c.sections.discuss,'Nothing specific. Every conversation will surface its own questions.')}</div></section>`}
+function assistHTML(id,name,connected){if(!S.settings||!S.settings.aiEnabled)return'';
+  return`<section class="assist" aria-labelledby="ah"><div class="spread"><h3 id="ah">Conversation help</h3><span class="pill navy">AI-assisted</span></div>
+  <p class="small muted">Summaries and suggestions use only what ${esc(name)} has shared with you. They never judge character, give spiritual direction, or suggest whether you should marry.</p>
+  <div class="row">${[['summary','Summarize profile'],['explain','Explain alignment'],['topics','Discussion topics'],['starters','Conversation starters']].map(([k,l])=>`<button class="btn ghost sm" data-act="ai" data-kind="${k}" data-id="${id}">${l}</button>`).join('')}</div>
+  <div class="ai-out" id="ai-out" hidden></div></section>`}
+
+/* ============================== Views ============================== */
+const VIEWS={},AFTER={};
+
+VIEWS.auth=async({mode='signin',errors={},values={}}={})=>{
+  const demos=[['grace.liu@example.org','Grace','Member · new profiles to discover','Grace','u1'],['joshua.lin@example.org','Joshua','Member · in an active conversation','Joshua','u9'],['ruth.wang@example.org','Ruth Wang','Matchmaker · reviews and introductions','Ruth','u13'],['stephen.ho@example.org','Stephen Ho','Administrator · users, reports, settings','Stephen','u14']];
+  const e=k=>errors[k]?`<p class="err">${esc(errors[k])}</p>`:'';
+  return`<section class="auth">
+   <div class="auth-intro"><p class="eyebrow">A private introduction service</p>
+    <h1>Find someone <em>worth getting to know.</em></h1>
+    <p class="lede">Consider helps brothers and sisters in the church life discover one another with care. We facilitate introductions. Discernment stays with you, and relationships grow in real life.</p>
+    <ul class="principles"><li><b>i.</b><span><strong>No swiping.</strong> Read a whole profile before expressing interest.</span></li><li><b>ii.</b><span><strong>Interest stays private</strong> until it’s mutual.</span></li><li><b>iii.</b><span><strong>A matchmaker introduces you</strong>, and a conversation opens only when both of you agree.</span></li><li><b>iv.</b><span><strong>No one decides for you.</strong> Consider never claims to find “the one.”</span></li></ul>
+   </div>
+   <div class="card stack">
+    <div class="seg" role="group" aria-label="Account"><button data-go="auth" data-p='{"mode":"signin"}' aria-pressed="${mode==='signin'}">Sign in</button><button data-go="auth" data-p='{"mode":"register"}' aria-pressed="${mode==='register'}">Create account</button></div>
+    ${mode==='signin'?`<form class="stack" data-form="login" novalidate>
+      <div class="field"><label for="l-email" class="small"><b>Email</b></label><input id="l-email" name="email" type="email" autocomplete="email" value="${esc(values.email||'')}" required></div>
+      <div class="field"><label for="l-pw" class="small"><b>Password</b></label><input id="l-pw" name="password" type="password" autocomplete="current-password" required></div>
+      ${errors._?`<p class="err" role="alert">${esc(errors._)}</p>`:''}
+      <button class="btn block" type="submit">Sign in</button></form>`
+    :`<form class="stack" data-form="register" novalidate>
+      <div class="field ${errors.firstName?'has-err':''}"><label for="r-name" class="small"><b>First name</b></label><input id="r-name" name="firstName" type="text" autocomplete="given-name" value="${esc(values.firstName||'')}">${e('firstName')}</div>
+      <div class="field ${errors.email?'has-err':''}"><label for="r-email" class="small"><b>Email</b></label><input id="r-email" name="email" type="email" autocomplete="email" value="${esc(values.email||'')}">${e('email')}<p class="help">Never shown to other members.</p></div>
+      <div class="field ${errors.password?'has-err':''}"><label for="r-pw" class="small"><b>Password</b></label><input id="r-pw" name="password" type="password" autocomplete="new-password">${e('password')}<p class="help">At least 8 characters.</p></div>
+      <div class="field ${errors.gender?'has-err':''}"><span class="small"><b>I am a</b></span><div class="chips">${['Brother','Sister'].map(g=>`<label class="chip"><input type="radio" name="gender" value="${g}" ${values.gender===g?'checked':''}><span>${g}</span></label>`).join('')}</div>${e('gender')}</div>
+      <label class="switch small ${errors.agree?'has-err':''}"><input type="checkbox" name="agree" id="r-agree" ${values.agree?'checked':''}><span>I understand Consider helps people discover one another and arranges introductions. It doesn’t decide who I should marry.</span></label>${e('agree')}
+      <button class="btn block" type="submit">Create account</button></form>`}
+    <div class="panel stack"><div><p class="label">Explore with demo accounts</p><p class="small muted">Fictional people. Password for each: <b>demo1234</b></p></div>
+     <div class="demo-list">${demos.map(([em,n,d,f,id])=>`<button class="demo-btn" data-act="demo" data-email="${em}"><img src="${monogram(f,id)}" alt=""><div><strong>${esc(n)}</strong><span>${esc(d)}</span></div><span class="muted small">Sign in</span></button>`).join('')}</div></div>
+   </div></section>
+   <p class="foot-note">Prototype. Data is stored in this browser only. Every request passes through an access-control layer before any record is shown.</p>`;
+};
+
+/* ---------- Setup wizard ---------- */
+VIEWS.setup=async({step=0}={})=>{
+  const [p,crit]=await Promise.all([API.myProfile(),API.myCriteria()]);
+  S.wiz.data=p;if(S.wiz.photo===undefined)S.wiz.photo=p.photo||'';
+  const st=STEPS[step],errs=S.wiz.errors||{};
+  const stepErr=s=>FIELDS.some(f=>f.step===s&&errs[f.key==='birth'?'birth':f.key]);
+  const head=`<div class="page-head"><p class="eyebrow">${p.status==='draft'?'Create your profile':'Edit your profile'} · Step ${step+1} of ${STEPS.length}</p><h1>${esc(st.title)}</h1><p>${esc(st.intro)}</p>
+   <div class="wiz-progress" aria-hidden="true">${STEPS.map((_,i)=>`<i class="${i<step?'on':i===step?'cur':''}"></i>`).join('')}</div>
+   <nav class="wiz-steps" aria-label="Steps">${STEPS.map((s,i)=>`<button data-act="wiz-jump" data-step="${i}" ${i===step?'aria-current="step"':''} ${i>(p.step||0)+1&&p.status==='draft'?'disabled':''}>${i+1}. ${esc(s.title)}${stepErr(s.id)?' ·  needs attention':''}</button>`).join('')}</nav></div>
+   ${p.status==='changes'&&p.reviewNote?`<div class="banner warn"><div><strong>A matchmaker asked for changes</strong>${esc(p.reviewNote)}</div></div>`:''}`;
+  let body='';
+  if(st.id==='criteria')body=criteriaForm(crit,errs);
+  else if(st.id==='review')body=await reviewStep(p,crit);
+  else{let html='',lastGroup=null;
+    for(const f of FIELDS.filter(x=>x.step===st.id)){if(f.group&&f.group!==lastGroup){html+=`<h2 class="group-h">${esc(f.group)}</h2>`;lastGroup=f.group}html+=fieldHTML(f,p,errs[f.key==='birth'?'birth':f.key])}
+    body=`<form class="stack" data-form="wiz" data-step="${step}" novalidate>${html}${wizFoot(step,p)}</form>`}
+  return head+body;
+};
+function wizFoot(step,p){return`<div class="wiz-foot"><div class="row">${step>0?`<button type="button" class="btn ghost" data-act="wiz-back" data-step="${step}">Back</button>`:''}<button type="button" class="btn quiet" data-act="wiz-exit" data-step="${step}">Save & exit</button></div><button class="btn" type="submit">${step===STEPS.length-2?'Save & review':'Save & continue'}</button></div>`}
+function fieldHTML(f,p,err){
+  const lvl=(p.vis&&p.vis[f.key])||f.vis;const id='f-'+f.key;const v=p[f.key];let ctrl='';
+  switch(f.type){
+    case'text':case'tel':ctrl=`<input id="${id}" name="${f.key}" type="${f.type==='tel'?'tel':'text'}" value="${esc(v??'')}" maxlength="${f.max||120}" ${f.ph?`placeholder="${esc(f.ph)}"`:''} ${f.key==='firstName'?'autocomplete="given-name"':f.key==='lastName'?'autocomplete="family-name"':f.type==='tel'?'autocomplete="tel"':''}>`;break;
+    case'email':ctrl=`<input id="${id}" type="email" value="${esc(S.user.email)}" disabled>`;break;
+    case'number':ctrl=`<input id="${id}" name="${f.key}" type="number" inputmode="numeric" min="${f.min}" max="${f.max}" value="${esc(v??'')}">`;break;
+    case'select':ctrl=`<select id="${id}" name="${f.key}" ${f.key==='gender'&&p.status!=='draft'?'disabled':''}><option value="">Choose…</option>${f.options.map(o=>`<option ${o===v?'selected':''}>${esc(o)}</option>`).join('')}</select>`;break;
+    case'textarea':ctrl=`<textarea id="${id}" name="${f.key}" maxlength="${f.max||600}" ${f.ph?`placeholder="${esc(f.ph)}"`:''}>${esc(v??'')}</textarea>`;break;
+    case'chips':ctrl=`<div class="chips" id="${id}" role="group" aria-label="${esc(f.label)}">${f.options.map(o=>`<label class="chip"><input type="checkbox" name="${f.key}" value="${esc(o)}" ${(v||[]).includes(o)?'checked':''}><span>${esc(o)}</span></label>`).join('')}</div>`;break;
+    case'scale':ctrl=`<div class="scale" id="${id}" role="radiogroup" aria-label="${esc(f.label)}">${f.options.map((o,i)=>`<label class="chip"><input type="radio" name="${f.key}" value="${i+1}" ${v===i+1?'checked':''}><span>${esc(o)}</span></label>`).join('')}</div>`;break;
+    case'monthyear':{const yNow=new Date().getFullYear();ctrl=`<div class="grid2"><select id="${id}" name="birthMonth" aria-label="Birth month"><option value="">Month…</option>${MONTHS.map((m,i)=>`<option value="${i+1}" ${p.birthMonth===i+1?'selected':''}>${m}</option>`).join('')}</select><select name="birthYear" aria-label="Birth year"><option value="">Year…</option>${Array.from({length:70},(_,i)=>yNow-18-i).map(y=>`<option ${p.birthYear===y?'selected':''}>${y}</option>`).join('')}</select></div>`;break}
+    case'photo':{const ph=S.wiz.photo;ctrl=`<div class="photo-field"><img src="${ph||monogram(p.firstName,S.user.id)}" alt="${ph?'Your photo':''}" id="photo-prev"><div class="stack" style="gap:8px"><label class="btn ghost sm" for="photo-in">${ph?'Replace photo':'Upload photo'}</label><input type="file" id="photo-in" accept="image/*" hidden>${ph?'<button type="button" class="btn quiet sm" data-act="photo-remove">Remove photo</button>':''}<p class="help" data-photo-msg></p></div></div><input type="hidden" name="photo" id="photo-val" value="">`;break}
+  }
+  const visCtl=f.opts.length>1?`<label class="vis"><span>Visible to</span><select data-vis="${f.key}" aria-label="Who can see ${esc(f.label)}">${f.opts.map(l=>`<option value="${l}" ${l===lvl?'selected':''}>${VISLABEL[l]}</option>`).join('')}</select></label>`:`<span class="vis fixed">${lvl==='private'?LOCK+' ':''}${VISLABEL[lvl]}</span>`;
+  return`<div class="field ${err?'has-err':''}" data-field="${f.key}"><div class="field-head"><label for="${id}">${esc(f.label)}${f.req?'':' <span class="opt">· optional</span>'}</label>${visCtl}</div>${f.help?`<p class="help">${esc(f.help)}</p>`:''}${ctrl}${err?`<p class="err">${esc(err)}</p>`:''}</div>`;
+}
+function readWizard(form){
+  const fd=new FormData(form),step=STEPS[+form.dataset.step].id,patch={};
+  for(const f of FIELDS.filter(x=>x.step===step)){
+    if(f.type==='email')continue;
+    if(f.type==='chips')patch[f.key]=fd.getAll(f.key);
+    else if(f.type==='monthyear'){patch.birthMonth=Number(fd.get('birthMonth'))||null;patch.birthYear=Number(fd.get('birthYear'))||null}
+    else if(f.type==='number'||f.type==='scale'){const x=fd.get(f.key);patch[f.key]=x===''||x==null?null:Number(x)}
+    else if(f.type==='photo')patch.photo=S.wiz.photo||'';
+    else if(f.key==='gender'&&form.querySelector('[name=gender]').disabled)continue;
+    else patch[f.key]=String(fd.get(f.key)||'').trim();
+  }
+  const vis={};form.querySelectorAll('[data-vis]').forEach(s=>vis[s.dataset.vis]=s.value);
+  return{patch,vis,fields:FIELDS.filter(x=>x.step===step)};
+}
+function criteriaForm(c,errs){
+  const items=c.items||{};
+  const row=d=>{const it=items[d.key]||{},on=!!it.level,v=it.value,n=`cv-${d.key}`;let ed='';
+    if(d.type==='set')ed=`<div class="chips ${d.options.length>8?'dense':''}">${d.options.map(o=>`<label class="chip"><input type="checkbox" name="${n}" value="${esc(o)}" ${(v||[]).includes(o)?'checked':''}><span>${esc(o)}</span></label>`).join('')}</div>`;
+    else if(d.type==='states')ed=`<div class="states-box"><div class="chips dense">${STATES.map(o=>`<label class="chip"><input type="checkbox" name="${n}" value="${o}" ${(v||[]).includes(o)?'checked':''}><span>${o}</span></label>`).join('')}</div></div>`;
+    else if(d.type==='range')ed=`<div class="grid2"><input type="number" name="${n}-0" aria-label="Minimum" placeholder="From" min="${d.min}" max="${d.max}" value="${v?v[0]:''}"><input type="number" name="${n}-1" aria-label="Maximum" placeholder="To" min="${d.min}" max="${d.max}" value="${v?v[1]:''}"></div><p class="help">${d.unit==='cm'?'Centimeters':'Years'}</p>`;
+    else if(d.type==='number')ed=`<input type="number" name="${n}" min="${d.min}" max="${d.max}" value="${v??''}" style="max-width:160px">`;
+    else if(d.type==='select')ed=`<select name="${n}" style="max-width:320px"><option value="">Choose…</option>${d.options.map(o=>`<option ${o===v?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
+    else if(d.type==='text')ed=`<input type="text" name="${n}" value="${esc(v||'')}" placeholder="${esc(d.ph||'')}">`;
+    else ed=`<p class="help">Applies when they list at least one area of service.</p>`;
+    return`<div class="crit ${on?'':'off'} ${errs[d.key]?'has-err':''}" data-crit="${d.key}"><div class="crit-head"><strong>${esc(d.label)}</strong><select name="lvl-${d.key}" aria-label="Importance of ${esc(d.label)}"><option value="">Not considering</option>${Object.entries(LEVELS).map(([k,l])=>`<option value="${k}" ${it.level===k?'selected':''}>${l.label}</option>`).join('')}</select></div><div class="crit-body">${ed}</div>${errs[d.key]?`<p class="err">${esc(errs[d.key])}</p>`:''}</div>`};
+  const groups=['faith','family','character','personality','lifestyle','location','other'];
+  return`<form data-form="criteria" novalidate>
+   <div class="lvl-legend"><div><b>Essential</b>Profiles that don’t meet it are flagged.</div><div><b>Strong preference</b>Weighs heavily.</div><div><b>Preference</b>Counts, gently.</div><div><b>Flexible</b>Noted, rarely decisive.</div></div>
+   ${groups.map(g=>`<h2 class="group-h" style="margin-top:22px">${esc(CATLABEL[g])}${WEIGHTS[g]?` <span class="small muted" style="font-family:var(--body)">· ${Math.round(WEIGHTS[g]*100)}% of ordering</span>`:''}</h2>${CRIT.filter(d=>d.cat===g).map(row).join('')}`).join('')}
+   <div class="field" style="margin-top:20px"><label for="c-note">Anything else about what you’re looking for</label><textarea id="c-note" name="note" maxlength="600">${esc(c.note||'')}</textarea></div>
+   <label class="switch small" style="margin-top:14px"><input type="checkbox" name="share" ${c.share!==false?'checked':''}><span>Show my criteria to members. When off, your criteria still guide your own discovery but others won’t see them.</span></label>
+   ${errs._crit?`<p class="err" style="margin-top:10px">${esc(errs._crit)}</p>`:''}
+   ${wizFoot(5,{})}</form>`;
+}
+function readCriteria(form){const fd=new FormData(form),items={};
+  for(const d of CRIT){const level=fd.get('lvl-'+d.key);if(!level)continue;const n='cv-'+d.key;let value;
+    if(d.type==='set'||d.type==='states')value=fd.getAll(n);else if(d.type==='range')value=[fd.get(n+'-0'),fd.get(n+'-1')].map(x=>x===''?NaN:Number(x));else if(d.type==='number')value=fd.get(n)===''?NaN:Number(fd.get(n));else if(d.type==='bool')value=true;else value=fd.get(n);
+    items[d.key]={level,value}}
+  return{items,note:fd.get('note'),share:!!fd.get('share')}}
+async function reviewStep(p,crit){
+  const errs=validateFields(FIELDS,p);const missing=STEPS.filter(s=>FIELDS.some(f=>f.step===s.id&&errs[f.key==='birth'?'birth':f.key]));
+  const hasCrit=Object.values(crit.items||{}).some(x=>x.level);
+  const done=p.status==='submitted'||p.status==='approved';
+  return`<div class="stack">
+   ${missing.length?`<div class="banner warn"><div><strong>A few answers are missing</strong>Complete: ${missing.map(s=>`<button class="linkbtn" data-act="wiz-jump" data-step="${STEPS.indexOf(s)}">${esc(s.title)}</button>`).join(', ')}.</div></div>`:''}
+   ${!hasCrit?`<div class="banner warn"><div><strong>No marriage criteria yet</strong><button class="linkbtn" data-act="wiz-jump" data-step="5">Add at least one</button> so discovery reflects what matters to you.</div></div>`:''}
+   <div class="card stack"><div class="spread"><h3>Your profile</h3>${pstatusPill(p.status)}</div>
+    <p class="small muted">See exactly what a member, a connection or a matchmaker can see before you submit.</p>
+    <div class="row"><button class="btn ghost sm" data-go="preview" data-p='{"mode":"member"}'>View as a member</button><button class="btn ghost sm" data-go="preview" data-p='{"mode":"connected"}'>View as a connection</button><button class="btn ghost sm" data-go="preview" data-p='{"mode":"staff"}'>View as a matchmaker</button></div></div>
+   <div class="card stack"><h3>Before you submit</h3><ul class="small" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px"><li>A matchmaker reviews each profile before it appears in discovery.</li><li>No one learns that you expressed interest unless they express interest in you too.</li><li>Private details stay private: only you and the matchmaking team can see them.</li><li>You can edit, hide or delete your profile at any time.</li></ul></div>
+   <div class="wiz-foot"><button class="btn ghost" data-act="wiz-back" data-step="6">Back</button>${done?`<button class="btn" data-go="me">Done</button>`:`<button class="btn" data-act="submit-profile" ${missing.length||!hasCrit?'disabled':''}>${p.status==='changes'?'Resubmit for review':'Submit for review'}</button>`}</div></div>`;
+}
+AFTER.setup=()=>{
+  const inp=$('#photo-in');if(inp)inp.onchange=async()=>{const f=inp.files[0];if(!f)return;const msg=document.querySelector('[data-photo-msg]');msg.textContent='Preparing photo…';
+    try{S.wiz.photo=await resizeImage(f);$('#photo-prev').src=S.wiz.photo;msg.textContent='Photo ready. It’s saved when you continue.'}catch(e){msg.textContent=e.message;msg.className='err'}};
+  document.querySelectorAll('[data-crit] select[name^="lvl-"]').forEach(s=>s.onchange=()=>s.closest('.crit').classList.toggle('off',!s.value));
+  const firstErr=document.querySelector('.has-err');if(firstErr)firstErr.scrollIntoView({block:'center'});
+};
+function resizeImage(file){return new Promise((res,rej)=>{if(!/^image\//.test(file.type))return rej(new Error('Choose an image file such as JPG or PNG.'));if(file.size>15e6)return rej(new Error('That image is over 15 MB. Choose a smaller one.'));
+  const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const s=Math.min(1,520/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext('2d').drawImage(img,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.82))};img.onerror=()=>rej(new Error('That image couldn’t be read. Try a JPG or PNG.'));img.src=r.result};r.onerror=()=>rej(new Error('The file couldn’t be read.'));r.readAsDataURL(file)})}
+
+/* ---------- Discover ---------- */
+VIEWS.discover=async()=>{
+  const r=await API.discover(S.filters);
+  if(r.state==='draft')return`<div class="page-head"><h1>Discover</h1></div><div class="empty"><h3>Finish your profile first</h3><p>Discovery opens once your profile and marriage criteria are complete. It takes about ten minutes.</p><button class="btn" data-go="setup" data-p='{"step":0}'>Continue your profile</button></div>`;
+  const banner=r.state==='submitted'?`<div class="banner"><div><strong>Your profile is under review</strong>You can browse now. Expressing interest opens once a matchmaker approves your profile, and until then others won’t see you.</div></div>`:r.state==='changes'?`<div class="banner warn"><div><strong>Changes requested</strong>A matchmaker left a note on your profile. <button class="linkbtn" data-go="setup" data-p='{"step":6}'>Review it</button></div></div>`:'';
+  const states=[...new Set(r.cards.map(c=>c.profile.state).filter(Boolean))];
+  return`<div class="page-head"><h1>Discover</h1><p>People whose church life and criteria most align with yours appear first. There’s no score and no rush.</p></div>${banner}
+   <div class="filters" role="group" aria-label="Filters">
+    <select id="flt-state" data-change="filter" data-k="state" aria-label="State"><option value="">Any state</option>${[...new Set([...states,S.filters.state].filter(Boolean))].sort().map(s=>`<option ${S.filters.state===s?'selected':''}>${s}</option>`).join('')}</select>
+    <select id="flt-age" data-change="filter" data-k="age" aria-label="Age"><option value="">Any age</option>${[['20','20s'],['30','30s'],['40','40s and up']].map(([v,l])=>`<option value="${v}" ${S.filters.age===v?'selected':''}>${l}</option>`).join('')}</select>
+    <label class="switch"><input type="checkbox" id="flt-ess" data-change="filter" data-k="essentials" ${S.filters.essentials?'checked':''}><span>Meets my essentials</span></label>
+   </div>
+   ${r.cards.length?`<div class="cards">${r.cards.map(c=>profileCard(c,{canInterest:r.state==='approved'})).join('')}</div>`
+   :`<div class="empty"><h3>${r.total?'No one matches these filters':'You’ve seen everyone for now'}</h3><p>${r.total?'Try widening the filters.':'New profiles are reviewed and added regularly. Check back soon, or review people you passed on.'}</p><div class="row" style="justify-content:center">${r.total?'<button class="btn ghost" data-act="clear-filters">Clear filters</button>':''}${r.passedCount?'<button class="btn ghost" data-go="me" data-p=\'{"focus":"passes"}\'>See passed profiles</button>':''}</div></div>`}`;
+};
+
+/* ---------- Person ---------- */
+VIEWS.person=async({id})=>{
+  const r=await API.person(id);const p=r.profile,P=pro(p);
+  let act='';
+  if(r.intro)act=`<div class="banner ok"><div><strong>You have an introduction with ${esc(p.firstName)}</strong>Status: ${STATUS_LABEL[r.intro.status]}. <button class="linkbtn" data-go="${r.intro.status==='connected'?'thread':'connections'}" data-p='${JSON.stringify({id:r.intro.id})}'>Open</button></div></div>`;
+  else if(S.user.role==='user')act=`<div class="row">${r.interested?`<button class="btn ghost" data-act="withdraw" data-id="${id}">Interest expressed · Withdraw</button>`:`<button class="btn" data-act="interest" data-id="${id}" data-name="${esc(p.firstName)}" ${r.canInterest?'':'disabled'}>Express interest</button>`}${r.passed?`<button class="btn quiet" data-act="unpass" data-id="${id}">Undo pass</button>`:`<button class="btn quiet" data-act="pass" data-id="${id}" data-name="${esc(p.firstName)}">Pass</button>`}</div>${r.canInterest?`<p class="small muted">${esc(p.firstName)} learns of your interest only if ${P.sub} also expresses interest in you.</p>`:'<p class="small muted">Expressing interest opens once your profile is approved.</p>'}`;
+  return`<button class="btn quiet" data-act="back" style="margin-left:-10px">← Back</button>
+   <div class="person-head" style="margin-top:8px"><img src="${photoOf(p)}" alt="${p.photo?'Photo of '+esc(p.firstName):''}">
+    <div class="stack" style="gap:10px"><div><h1>${esc(p.firstName)}${p.lastName?' '+esc(p.lastName):''}</h1>${p.chineseName?`<p class="muted" style="font-family:var(--display);font-size:var(--fs-lg)">${esc(p.chineseName)}</p>`:''}</div>
+     <p class="muted">${esc([isNum(p.age)?p.age:p.ageBand&&p.ageBand.label,where(p),p.job].filter(Boolean).join(' · '))}</p>
+     ${p.photoWithheld?'<p class="small muted">Photo is shared after connecting.</p>':''}
+     ${act}</div></div>
+   ${r.compat?compatHTML(r.compat,p.firstName):''}
+   ${r.relation!=='staff'?assistHTML(id,p.firstName,r.relation==='connected'):''}
+   ${profileBody({...p,vis:undefined})}
+   <section class="section"><p class="small muted">Concerned about something on this profile? <button class="linkbtn" data-act="report" data-id="${id}" data-name="${esc(p.firstName)}">Report it privately</button></p></section>`;
+};
+
+/* ---------- Connections ---------- */
+VIEWS.connections=async()=>{
+  const r=await API.myConnections();
+  const active=r.intros.filter(i=>i.status!=='closed'),past=r.intros.filter(i=>i.status==='closed');
+  const card=i=>{const o=i.other;let body='';
+    if(i.status==='pending')body=`<p class="small">You both expressed interest. A matchmaker will review the introduction and may reach out to each of you first.</p>`;
+    if(i.status==='reviewing')body=`<p class="small">A matchmaker is reviewing this introduction. There’s nothing you need to do yet.</p>`;
+    if(i.status==='proposed')body=`${i.proposalNote?`<div class="note"><span class="label">From your matchmaker</span>${esc(i.proposalNote)}</div>`:''}${i.myAccept?`<p class="small">You accepted. Waiting for a response from ${esc(o.firstName)}.</p>`:`<div class="row"><button class="btn" data-act="accept-intro" data-id="${i.id}" data-name="${esc(o.firstName)}">Accept introduction</button><button class="btn ghost" data-act="decline-intro" data-id="${i.id}" data-name="${esc(o.firstName)}">Decline</button></div><p class="small muted">If you decline, ${esc(o.firstName)} is told only that the introduction closed.</p>`}`;
+    if(i.status==='accepted')body=`<p class="small">You’ve both accepted. A matchmaker will open your conversation shortly.</p>`;
+    if(i.status==='connected')body=`<div class="spread"><p class="small"><span class="label">Stage</span><br>${esc(i.progress.stage)}</p><button class="btn" data-go="thread" data-p='${JSON.stringify({id:i.id})}'>Open conversation${i.unread?` <span class="badge-n">${i.unread}</span>`:''}</button></div>${i.last?`<p class="small muted">${i.last.mine?'You: ':''}${esc(i.last.text.slice(0,110))}${i.last.text.length>110?'…':''} · ${ago(i.last.at)}</p>`:''}`;
+    return`<article class="conn"><div class="conn-top"><img src="${photoOf(o)}" alt=""><div><h3>${esc(o.firstName)}</h3><p class="small muted">${esc([o.ageBand&&o.ageBand.label,where(o)].filter(Boolean).join(' · '))}</p></div>${introPill(i.status)}</div>${stepsBar(i.status)}${body}
+     <div class="row" style="justify-content:space-between"><button class="btn quiet sm" data-go="person" data-p='${JSON.stringify({id:o.id})}'>View profile</button>${i.status!=='closed'?`<button class="btn quiet sm" data-act="end-intro" data-id="${i.id}" data-name="${esc(o.firstName)}">${i.status==='connected'?'End connection':'Close introduction'}</button>`:''}</div></article>`};
+  return`<div class="page-head"><h1>Connections</h1><p>Introductions move from mutual interest, through a matchmaker’s review, to a private conversation when you’re both ready.</p></div>
+   ${active.length?`<div class="stack">${active.map(card).join('')}</div>`:`<div class="empty"><h3>No introductions yet</h3><p>When someone you’ve expressed interest in feels the same, the introduction appears here.</p><button class="btn ghost" data-go="discover">Discover profiles</button></div>`}
+   <section class="section" style="margin-top:28px"><div><h2>Interest you’ve expressed</h2><p class="small muted" style="margin-top:4px">Private to you. They aren’t notified unless the interest becomes mutual.</p></div>
+    ${r.pending.length?r.pending.map(x=>`<div class="mini"><img src="${photoOf(x.profile)}" alt=""><div><b>${esc(x.profile.firstName)}</b><p class="small muted">${esc(where(x.profile))} · ${ago(x.at)}</p></div><div class="row"><button class="btn quiet sm" data-go="person" data-p='${JSON.stringify({id:x.id})}'>View</button><button class="btn quiet sm" data-act="withdraw" data-id="${x.id}">Withdraw</button></div></div>`).join(''):'<p class="small muted">None at the moment.</p>'}</section>
+   ${past.length?`<section class="section"><h2>Past introductions</h2>${past.map(i=>`<div class="mini"><img src="${photoOf(i.other)}" alt=""><div><b>${esc(i.other.firstName)}</b><p class="small muted">Closed ${ago(i.updatedAt)}</p></div>${i.last?`<button class="btn quiet sm" data-go="thread" data-p='${JSON.stringify({id:i.id})}'>Read messages</button>`:''}</div>`).join('')}</section>`:''}`;
+};
+
+/* ---------- Thread ---------- */
+VIEWS.thread=async({id})=>{
+  const r=await API.thread(id);const o=r.other,open=r.intro.status==='connected';
+  return`<div class="thread-head"><button class="btn quiet" data-go="connections" aria-label="Back to connections">←</button><img src="${photoOf(o)}" alt=""><div><h2 style="font-size:var(--fs-lg)">${esc(o.firstName)}</h2><p class="xs muted">${open?'Private conversation · only the two of you can read it':'This connection has closed'}</p></div><button class="btn quiet sm" data-go="person" data-p='${JSON.stringify({id:o.id})}'>Profile</button></div>
+   ${open?`<div class="card" style="padding:14px 16px"><div class="spread"><label for="stage" class="small"><b>Relationship stage</b></label><select id="stage" data-change="stage" data-id="${id}" style="width:auto;min-height:36px;font-size:var(--fs-sm)">${PROGRESS.map(s=>`<option ${s===r.intro.progress.stage?'selected':''}>${esc(s)}</option>`).join('')}</select></div><p class="xs muted" style="margin-top:6px">Either of you can update this. It helps your matchmaker know how to support you; it isn’t a commitment.</p></div>`:''}
+   ${open&&S.settings.aiEnabled?`<details style="margin-top:12px"><summary class="small" style="cursor:pointer;color:var(--navy);font-weight:600">Need a way to start? Conversation help</summary><div style="margin-top:10px">${assistHTML(o.id,o.firstName,true)}</div></details>`:''}
+   <div class="msgs" id="msgs">${r.intro.proposalNote?`<p class="sysmsg">Introduced by your matchmaker: “${esc(r.intro.proposalNote)}”</p>`:''}${r.intro.connectedAt?`<p class="sysmsg">Connected ${clock(r.intro.connectedAt)}</p>`:''}
+    ${r.messages.length?r.messages.map(m=>`<div class="msg ${m.mine?'mine':''}">${esc(m.text)}<time>${clock(m.at)}</time></div>`).join(''):`<p class="sysmsg">No messages yet. A simple hello and a question about something on ${esc(o.firstName)}’s profile is a good start.</p>`}</div>
+   ${open?`<form class="composer" data-form="send" data-id="${id}"><textarea id="compose" name="text" placeholder="Write to ${esc(o.firstName)}…" maxlength="2000" aria-label="Message"></textarea><button class="btn" type="submit">Send</button></form>
+   <p class="xs muted" style="margin-top:10px">Keep personal contact details out of messages until you’re comfortable. <button class="linkbtn" data-act="report" data-id="${o.id}" data-name="${esc(o.firstName)}">Report a concern</button></p>`:''}`;
+};
+AFTER.thread=()=>{const m=$('#msgs');if(m&&m.lastElementChild)m.lastElementChild.scrollIntoView({block:'end'});const c=$('#compose');if(c)c.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();c.form.requestSubmit()}})};
+
+/* ---------- Me ---------- */
+VIEWS.me=async({focus}={})=>{
+  const[p,passes]=await Promise.all([API.myProfile(),API.myPasses()]);
+  const errs=validateFields(FIELDS,p);const total=FIELDS.filter(f=>f.req).length,missing=Object.keys(errs).length;
+  const statusText={draft:'Your profile isn’t submitted yet.',submitted:'A matchmaker is reviewing your profile. Others can’t see it until it’s approved.',approved:p.hidden?'Approved, but hidden from discovery.':'Approved and visible to members in discovery.',changes:'A matchmaker asked for changes.'}[p.status];
+  const visRows=FIELDS.filter(f=>f.opts.length>1).map(f=>`<tr><td>${esc(f.label)}</td><td><select data-change="vis" data-k="${f.key}" aria-label="Who can see ${esc(f.label)}">${f.opts.map(l=>`<option value="${l}" ${p.vis[f.key]===l?'selected':''}>${VISLABEL[l]}</option>`).join('')}</select></td></tr>`).join('');
+  return`<div class="page-head"><div class="spread"><h1>${esc(p.firstName)}${p.lastName?' '+esc(p.lastName):''}</h1>${pstatusPill(p.status)}</div><p>${esc(statusText)}</p></div>
+   ${p.status==='changes'&&p.reviewNote?`<div class="banner warn"><div><strong>Note from your matchmaker</strong>${esc(p.reviewNote)}<div style="margin-top:8px"><button class="btn sm" data-go="setup" data-p='{"step":0}'>Edit profile</button></div></div></div>`:''}
+   ${p.status==='draft'?`<div class="banner"><div><strong>${total-missing>0?`${Math.round((total-missing)/total*100)}% of required answers complete`:'Let’s get started'}</strong><div style="margin-top:8px"><button class="btn sm" data-go="setup" data-p='${JSON.stringify({step:Math.min(p.step||0,6)})}'>Continue your profile</button></div></div></div>`:''}
+   <div class="stack">
+    <div class="row"><button class="btn" data-go="setup" data-p='{"step":0}'>Edit profile</button><button class="btn ghost" data-go="setup" data-p='{"step":5}'>Edit marriage criteria</button></div>
+    <section class="section"><h2>View my profile as others see it</h2><p class="small muted">Each view is produced by the same access rules that serve other members, so what you see is what they get.</p>
+     <div class="row"><button class="btn ghost sm" data-go="preview" data-p='{"mode":"member"}'>As a member</button><button class="btn ghost sm" data-go="preview" data-p='{"mode":"connected"}'>As a connection</button><button class="btn ghost sm" data-go="preview" data-p='{"mode":"staff"}'>As a matchmaker</button></div></section>
+    <section class="section"><h2>Privacy</h2>
+     <label class="switch"><input type="checkbox" id="hide-toggle" data-change="hidden" ${p.hidden?'checked':''}><span><b>Hide my profile from discovery</b><br><span class="small muted">Existing introductions and conversations continue. New people won’t see you.</span></span></label>
+     <div class="table-wrap"><table style="min-width:0"><thead><tr><th>Detail</th><th>Who can see it</th></tr></thead><tbody>${visRows}<tr><td>Exact address</td><td><span class="lock">${LOCK} Only me & matchmakers</span></td></tr></tbody></table></div>
+     <p class="xs muted">Matchmaker and admin notes about you are never visible to members.</p></section>
+    <section class="section" id="passes"><h2>Passed profiles</h2>${passes.length?passes.map(x=>`<div class="mini" style="grid-template-columns:1fr auto"><div><b>${esc(x.firstName)}</b><p class="small muted">Passed ${ago(x.at)}</p></div><button class="btn quiet sm" data-act="unpass" data-id="${x.id}">Show again</button></div>`).join(''):'<p class="small muted">You haven’t passed on anyone.</p>'}</section>
+    <section class="section"><h2>Account</h2><p class="small muted">Signed in as ${esc(S.user.email)}</p><div class="row"><button class="btn ghost" data-act="logout">Sign out</button><button class="btn quiet" data-act="delete-account" style="color:var(--bad)">Delete my account and data</button></div></section>
+   </div>`;
+};
+AFTER.me=({focus}={})=>{if(focus){const el=document.getElementById(focus);if(el)el.scrollIntoView({block:'start'})}};
+
+/* ---------- Preview as others ---------- */
+VIEWS.preview=async({mode='member'})=>{
+  const[p,full]=await Promise.all([API.previewAs(mode),API.myProfile()]);
+  const hidden=FIELDS.filter(f=>{const k=f.key;if(['firstName','gender'].includes(k))return false;if(f.type==='monthyear')return full.birthYear&&!isNum(p.age);if(k==='email')return!p.email;return full[k]!=null&&full[k]!==''&&!(Array.isArray(full[k])&&!full[k].length)&&!(k in p)}).map(f=>f.label);
+  const label={member:'a member browsing discovery',connected:'someone you’re connected with',staff:'a matchmaker'}[mode];
+  return`<button class="btn quiet" data-go="me" style="margin-left:-10px">← Profile</button>
+   <div class="page-head" style="margin-top:8px"><p class="eyebrow">Preview</p><h1>As ${label} sees it</h1>
+    <div class="seg" role="group" aria-label="Preview as" style="max-width:520px">${[['member','Member'],['connected','Connection'],['staff','Matchmaker']].map(([m,l])=>`<button data-go="preview" data-p='{"mode":"${m}"}' aria-pressed="${m===mode}">${l}</button>`).join('')}</div></div>
+   ${hidden.length?`<div class="banner"><div><strong>Not visible in this view</strong>${esc(hidden.join(', '))}</div></div>`:`<div class="banner ok"><div><strong>Everything you’ve shared is visible in this view.</strong></div></div>`}
+   ${mode==='member'?`<p class="label" style="margin-bottom:8px">Your discovery card</p>${profileCard({profile:p,essentials:p.criteria?Object.entries(p.criteria.items).filter(([,x])=>x.level==='essential').map(([k,x])=>({label:CRITD[k].label,value:crValueText(CRITD[k],x.value)})):[],top:[]},{canInterest:false})}`:''}
+   <div class="person-head" style="margin-top:24px"><img src="${photoOf(p)}" alt=""><div class="stack" style="gap:8px"><h2>${esc(p.firstName)}${p.lastName?' '+esc(p.lastName):''}</h2>${p.chineseName?`<p class="muted">${esc(p.chineseName)}</p>`:''}<p class="muted">${esc([isNum(p.age)?p.age:p.ageBand&&p.ageBand.label,where(p),p.job].filter(Boolean).join(' · '))}</p>${p.photoWithheld?'<p class="small muted">Photo is shown after connecting.</p>':''}</div></div>
+   ${profileBody({...p,vis:undefined})}`;
+};
+
+/* ---------- Notifications ---------- */
+VIEWS.notifs=async()=>{
+  const n=await API.notifs();const any=n.some(x=>!x.read);
+  return`<div class="page-head"><div class="spread"><h1>Updates</h1>${any?'<button class="btn ghost sm" data-act="read-all">Mark all as read</button>':''}</div></div>
+   ${n.length?`<div class="stack" style="gap:0">${n.map(x=>`<div class="mini" style="grid-template-columns:10px 1fr auto"><span style="width:8px;height:8px;border-radius:50%;background:${x.read?'transparent':'var(--brass)'}"></span><div><p class="small" style="${x.read?'':'font-weight:600'}">${esc(x.text)}</p><p class="xs muted">${ago(x.at)}</p></div>${x.link?`<button class="btn quiet sm" data-go="${x.link.view}" data-p='${esc(JSON.stringify(x.link.params||{}))}'>Open</button>`:''}</div>`).join('')}</div>`
+   :`<div class="empty"><h3>No updates</h3><p>Introductions, reviews and messages will appear here.</p></div>`}<p class="small muted" style="margin-top:28px">Signed in as ${esc(S.user.email)} · <button class="linkbtn" data-act="logout">Sign out</button></p>`;
+};
+AFTER.notifs=()=>{API.markNotifsRead().then(()=>document.querySelectorAll('[data-unread]').forEach(b=>b.hidden=true)).catch(()=>{})};
+
+/* ---------- Matchmaker ---------- */
+VIEWS.mm=async({tab='intros'}={})=>{
+  const[o,queue,board,members]=await Promise.all([API.staffOverview(),API.reviewQueue(),API.introBoard(),API.members()]);
+  const active=o.intros.pending+o.intros.reviewing+o.intros.proposed+o.intros.accepted;
+  const stats=`<div class="stats"><div class="stat"><b>${o.reviews}</b><span>Profiles awaiting review</span></div><div class="stat"><b>${o.intros.pending+o.intros.accepted}</b><span>Introductions needing action</span></div><div class="stat"><b>${active}</b><span>Introductions in progress</span></div><div class="stat"><b>${o.intros.connected}</b><span>Connected pairs</span></div></div>`;
+  const tabs=`<div class="tabs" role="tablist">${[['intros','Introductions'],['reviews',`Profile reviews (${queue.length})`],['members','Members']].map(([k,l])=>`<button role="tab" data-go="mm" data-p='{"tab":"${k}"}' aria-selected="${tab===k}">${l}</button>`).join('')}</div>`;
+  let body='';
+  if(tab==='reviews')body=queue.length?`<div class="stack" style="gap:0">${queue.map(q=>`<div class="mini"><img src="${q.photo||monogram(q.firstName,q.id)}" alt=""><div><b>${esc(q.firstName)} ${esc(q.lastName||'')}</b><p class="small muted">${esc([q.gender,where(q)].filter(Boolean).join(' · '))} · submitted ${ago(q.submittedAt)}</p></div><div class="row">${pstatusPill(q.status)}<button class="btn sm" data-go="mmReview" data-p='${JSON.stringify({uid:q.id})}'>Review</button></div></div>`).join('')}</div>`:`<div class="empty"><h3>All caught up</h3><p>New profile submissions will appear here.</p></div>`;
+  if(tab==='intros'){const col=(title,sts)=>{const its=board.filter(i=>sts.includes(i.status));return`<div class="col"><h3><span>${title}</span><span class="muted">${its.length}</span></h3>${its.length?its.map(i=>`<button class="icard" data-go="mmIntro" data-p='${JSON.stringify({id:i.id})}'><div class="spread"><strong>${esc(i.a.firstName)} & ${esc(i.b.firstName)}</strong>${introPill(i.status)}</div><span class="xs muted">${i.status==='proposed'?`${Object.values(i.accepted).filter(Boolean).length} of 2 accepted · `:i.status==='connected'?esc(i.stage)+' · ':''}Updated ${ago(i.updatedAt)}</span></button>`).join(''):'<p class="xs muted">None</p>'}</div>`};
+    body=`<div class="board">${col('Needs your action',['pending','reviewing','accepted'])}${col('Waiting on members',['proposed'])}${col('Connected',['connected'])}</div>${board.some(i=>i.status==='closed')?`<section class="section" style="margin-top:20px"><h3>Closed</h3>${board.filter(i=>i.status==='closed').map(i=>`<button class="icard" style="margin-top:8px" data-go="mmIntro" data-p='${JSON.stringify({id:i.id})}'><strong>${esc(i.a.firstName)} & ${esc(i.b.firstName)}</strong><span class="xs muted">Closed ${ago(i.updatedAt)}</span></button>`).join('')}</section>`:''}`}
+  if(tab==='members')body=`<div class="table-wrap"><table><thead><tr><th>Member</th><th>Locality</th><th>Location</th><th>Profile</th><th></th></tr></thead><tbody>${members.map(m=>`<tr><td><b>${esc(m.firstName||'—')} ${esc(m.lastName||'')}</b><br><span class="xs muted">${esc(m.gender||'')}</span></td><td>${esc(m.locality||'—')}</td><td>${esc(where(m)||'—')}</td><td>${m.status?pstatusPill(m.status):'—'}${m.hidden?' <span class="pill">Hidden</span>':''}</td><td><button class="btn quiet sm" data-go="mmReview" data-p='${JSON.stringify({uid:m.id})}'>Open</button></td></tr>`).join('')}</tbody></table></div>`;
+  return`<div class="page-head"><div class="spread"><h1>Matchmaking</h1><button class="btn quiet sm" data-act="logout">Sign out</button></div><p>Review profiles, shepherd introductions, and keep private notes. Members never see your notes or their conversations’ contents.</p></div>${stats}${tabs}${body}`;
+};
+function notesHTML(subject,notes){return`<section class="section"><div class="spread"><h2>Private notes</h2><span class="lock">${LOCK} Staff only</span></div>${notes.length?`<ul class="hist">${notes.map(n=>`<li><span class="xs muted">${ago(n.at)}<br>${esc(n.author)}</span><span>${esc(n.text)}</span></li>`).join('')}</ul>`:'<p class="small muted">No notes yet.</p>'}
+  <form class="stack" data-form="note" data-subject="${subject}"><textarea id="note-${subject.replace(':','-')}" name="text" placeholder="Add a note for the matchmaking team…" maxlength="1500" aria-label="New note"></textarea><div><button class="btn ghost sm" type="submit">Add note</button></div></form></section>`}
+VIEWS.mmReview=async({uid})=>{
+  const r=await API.staffMember(uid);const p=r.profile;
+  return`<button class="btn quiet" data-go="mm" data-p='{"tab":"reviews"}' style="margin-left:-10px">← Matchmaking</button>
+   <div class="person-head" style="margin-top:8px"><img src="${photoOf(p)}" alt=""><div class="stack" style="gap:10px"><div class="row"><h1>${esc(p.firstName)} ${esc(p.lastName||'')}</h1>${pstatusPill(p.status)}${p.hidden?'<span class="pill">Hidden</span>':''}</div>
+    <p class="muted">${esc([p.gender,isNum(p.age)?p.age:'',where(p)].filter(Boolean).join(' · '))}</p>
+    <p class="small muted">Account ${esc(r.account.email)} · joined ${new Date(r.account.createdAt).toLocaleDateString()}${r.reports?` · <span style="color:var(--bad)">${r.reports} report${r.reports>1?'s':''}</span>`:''}</p>
+    ${r.editedSinceReview?'<p class="small" style="color:var(--warn)">Edited since last approval.</p>':''}
+    ${p.status!=='approved'?`<div class="row"><button class="btn" data-act="mm-approve" data-id="${uid}" data-name="${esc(p.firstName)}">Approve profile</button><button class="btn ghost" data-act="mm-changes" data-id="${uid}" data-name="${esc(p.firstName)}">Request changes</button></div>`:`<div class="row"><button class="btn ghost sm" data-act="mm-changes" data-id="${uid}" data-name="${esc(p.firstName)}">Request changes</button>${r.editedSinceReview?`<button class="btn sm" data-act="mm-approve" data-id="${uid}" data-name="${esc(p.firstName)}">Re-approve</button>`:''}</div>`}
+    ${p.reviewNote?`<div class="note"><span class="label">Change request sent</span>${esc(p.reviewNote)}</div>`:''}
+   </div></div>
+   ${r.intros.length?`<section class="section"><h2>Introductions</h2>${r.intros.map(i=>`<div class="mini" style="grid-template-columns:1fr auto"><span>With <b>${esc(i.other)}</b></span><div class="row">${introPill(i.status)}<button class="btn quiet sm" data-go="mmIntro" data-p='${JSON.stringify({id:i.id})}'>Open</button></div></div>`).join('')}</section>`:''}
+   ${notesHTML('user:'+uid,r.notes)}
+   <p class="small muted" style="margin-top:8px">Fields marked <span class="private-tag">Private</span> are visible only to the member and the matchmaking team.</p>
+   ${profileBody(p)}`;
+};
+VIEWS.mmIntro=async({id})=>{
+  const r=await API.staffIntro(id);const i=r.intro,a=r.a,b=r.b;
+  const nameA=a?a.firstName:'Former member',nameB=b?b.firstName:'Former member';
+  const actions={pending:[['reviewing','Start review','']],reviewing:[['proposed','Propose introduction','']],accepted:[['connected','Open conversation','']],proposed:[],connected:[],closed:[]}[i.status];
+  const side=p=>p?`<div class="card stack" style="gap:10px"><div class="row"><img src="${photoOf(p)}" alt="" style="width:52px;height:64px;border-radius:6px;object-fit:cover"><div><h3>${esc(p.firstName)} ${esc(p.lastName||'')}</h3><p class="small muted">${esc([isNum(p.age)?p.age:'',where(p)].filter(Boolean).join(' · '))}</p></div></div>${factsDL(p)}${i.status==='proposed'?`<p class="small">${i.accepted[p.id]?'<span class="pill ok">Accepted</span>':'<span class="pill">No response yet</span>'}</p>`:''}<button class="btn quiet sm" data-go="mmReview" data-p='${JSON.stringify({uid:p.id})}'>Full profile & notes</button></div>`:'<div class="card"><p class="muted">This member has left Consider.</p></div>';
+  return`<button class="btn quiet" data-go="mm" data-p='{"tab":"intros"}' style="margin-left:-10px">← Matchmaking</button>
+   <div class="page-head" style="margin-top:8px"><div class="row"><h1>${esc(nameA)} & ${esc(nameB)}</h1>${introPill(i.status)}</div>${stepsBar(i.status)}</div>
+   <div class="row" style="margin-bottom:20px">${actions.map(([to,l])=>`<button class="btn" data-act="mm-advance" data-id="${id}" data-to="${to}" data-names="${esc(nameA+' and '+nameB)}">${l}</button>`).join('')}${i.status!=='closed'?`<button class="btn ghost" data-act="mm-advance" data-id="${id}" data-to="closed" data-names="${esc(nameA+' and '+nameB)}">Close introduction</button>`:''}</div>
+   ${i.status==='proposed'?'<div class="banner"><div><strong>Waiting on both members</strong>Each member accepts or declines on their own Connections page.</div></div>':''}
+   ${i.proposalNote?`<div class="note" style="margin-bottom:16px"><span class="label">Introduction note shared with both</span>${esc(i.proposalNote)}</div>`:''}
+   <div class="two">${side(a)}${side(b)}</div>
+   ${r.compat?compatHTML(r.compat,nameB).replace('How you and','How '+esc(nameA)+' and').replace('Drawn only from what each of you chose to share.','Seen from '+esc(nameA)+'’s criteria and profile.'):''}
+   <section class="section"><h2>History</h2><ul class="hist">${i.history.map(h=>`<li><span class="xs muted">${clock(h.at)}</span><span><b>${STATUS_LABEL[h.status]}</b>${h.text?` · ${esc(h.text)}`:''}${h.byName&&h.by!=='system'?` <span class="muted">(${esc(h.byName)})</span>`:''}</span></li>`).join('')}</ul>
+    ${i.status==='connected'||i.messageCount?`<p class="small muted">Relationship stage: <b>${esc(i.progress.stage)}</b> · ${i.messageCount} messages exchanged. Message contents are private to the two members.</p>`:''}</section>
+   ${notesHTML('intro:'+id,r.notes)}`;
+};
+
+/* ---------- Admin ---------- */
+VIEWS.admin=async({tab='users'}={})=>{
+  const tabs=`<div class="tabs" role="tablist">${[['users','Users'],['reports','Reports'],['settings','Settings']].map(([k,l])=>`<button role="tab" data-go="admin" data-p='{"tab":"${k}"}' aria-selected="${tab===k}">${l}</button>`).join('')}</div>`;
+  let body='';
+  if(tab==='users'){const u=await API.users();body=`<div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Profile</th><th>Account</th><th></th></tr></thead><tbody>${u.map(x=>`<tr><td><b>${esc(x.name||'—')}</b>${x.self?' <span class="xs muted">(you)</span>':''}</td><td>${esc(x.email)}</td><td><select data-change="role" data-id="${x.id}" ${x.self?'disabled':''} aria-label="Role for ${esc(x.name)}">${['user','matchmaker','admin'].map(r=>`<option value="${r}" ${x.role===r?'selected':''}>${r==='user'?'Member':r==='matchmaker'?'Matchmaker':'Admin'}</option>`).join('')}</select></td><td>${x.profileStatus?pstatusPill(x.profileStatus):'<span class="xs muted">—</span>'}</td><td>${x.status==='active'?'<span class="pill ok">Active</span>':'<span class="pill bad">Suspended</span>'}</td><td>${x.self?'':`<button class="btn quiet sm" data-act="user-status" data-id="${x.id}" data-to="${x.status==='active'?'suspended':'active'}" data-name="${esc(x.name)}">${x.status==='active'?'Suspend':'Reactivate'}</button>`}</td></tr>`).join('')}</tbody></table></div>`}
+  if(tab==='reports'){const r=await API.reports();body=r.length?`<div class="stack">${r.map(x=>`<div class="card stack" style="gap:10px"><div class="spread"><b>About ${esc(x.targetName)}</b><span class="pill ${x.status==='open'?'warn':''}">${x.status==='open'?'Open':x.status==='resolved'?'Resolved':'Dismissed'}</span></div><p>${esc(x.reason)}</p><p class="xs muted">Reported by ${esc(x.byName)} · ${ago(x.at)}${x.targetStatus==='suspended'?' · member suspended':''}</p>${x.status==='open'?`<div class="row"><button class="btn sm" data-act="report-resolve" data-id="${x.id}" data-to="resolved">Mark resolved</button><button class="btn ghost sm" data-act="report-resolve" data-id="${x.id}" data-to="dismissed">Dismiss</button>${x.targetStatus==='active'?`<button class="btn quiet sm" data-act="user-status" data-id="${x.target}" data-to="suspended" data-name="${esc(x.targetName)}" style="color:var(--bad)">Suspend member</button>`:''}</div>`:''}</div>`).join('')}</div>`:`<div class="empty"><h3>No reports</h3><p>Reports from members will appear here.</p></div>`}
+  if(tab==='settings'){const s=await API.settings();const sw=(k,t,d)=>`<label class="switch" style="padding:14px 0;border-top:1px solid var(--line)"><input type="checkbox" data-change="setting" data-k="${k}" ${s[k]?'checked':''}><span><b>${t}</b><br><span class="small muted">${d}</span></span></label>`;
+    body=`<div class="card" style="padding-top:6px">${sw('requireApproval','Require matchmaker approval','New and resubmitted profiles stay out of discovery until a matchmaker approves them.')}${sw('autoConnect','Connect on mutual interest','Skip the matchmaker workflow and open a conversation as soon as interest is mutual.')}${sw('oneConnection','One connection at a time','Members in an open connection are paused from others’ discovery.')}${sw('aiEnabled','AI conversation help','Summaries, discussion topics and conversation starters. Never judges character or advises on marriage.')}</div>
+    <section class="section" style="margin-top:20px"><h2>Demo data</h2><p class="small muted">Restore the fictional members, introductions and messages. This signs everyone out of this browser.</p><div><button class="btn ghost" data-act="reset-demo">Reset demo data</button></div></section>
+    ${s.persistent?'':'<div class="banner warn"><div><strong>Browser storage is unavailable</strong>Changes last only until this page is closed.</div></div>'}`}
+  return`<div class="page-head"><div class="spread"><h1>Administration</h1><button class="btn quiet sm" data-act="logout">Sign out</button></div><p>Manage accounts, roles, reports and how the service behaves.</p></div>${tabs}${body}`;
+};
+
+/* ============================== Actions ============================== */
+const ACT={
+  async demo(el){try{await API.login(el.dataset.email,'demo1234');await boot()}catch(e){fail(e)}},
+  async logout(){await API.logout();S.user=null;go('auth')},
+  reload(){refresh()},
+  back(){history.length>1&&S.prev?go(S.prev.view,S.prev.params):go(S.user.role==='user'?'discover':'mm')},
+  'clear-filters'(){S.filters={essentials:false,state:'',age:''};go('discover')},
+  'wiz-jump'(el){saveStepThen(+el.dataset.step)},
+  'wiz-back'(el){saveStepThen(+el.dataset.step-1)},
+  'wiz-exit'(el){saveStepThen(null)},
+  'photo-remove'(){S.wiz.photo='';$('#photo-prev').src=monogram(S.wiz.data.firstName,S.user.id);document.querySelector('[data-act=photo-remove]').remove();document.querySelector('[data-photo-msg]').textContent='Photo will be removed when you continue.'},
+  async 'submit-profile'(el){el.disabled=true;try{const r=await API.submitMyProfile();await refreshUser();toast(r.status==='approved'?'Your profile is live.':'Submitted. A matchmaker will review it.');go('discover')}catch(e){el.disabled=false;if(e.fields){S.wiz.errors=e.fields}fail(e)}},
+  interest(el){const id=el.dataset.id,n=el.dataset.name;
+    modal({title:`Express interest in ${n}?`,body:`<p>${esc(n)} won’t be told unless they also express interest in you. If they do, a matchmaker will review the introduction before any conversation begins.</p>`,confirm:'Express interest',
+      onConfirm:async()=>{const r=await API.expressInterest(id);if(r.mutual){toast(r.status==='connected'?`You and ${n} are connected.`:`It’s mutual. A matchmaker will review your introduction with ${n}.`);go('connections')}else{toast(`Interest expressed. It stays private unless it’s mutual.`);refresh()}}})},
+  async withdraw(el){try{await API.withdrawInterest(el.dataset.id);toast('Interest withdrawn.');refresh()}catch(e){fail(e)}},
+  async pass(el){const id=el.dataset.id;try{await API.pass(id);toast(`You passed on ${el.dataset.name}.`,{action:'Undo',onAction:async()=>{await API.unpass(id);refresh()}});S.view==='person'?go('discover'):refresh()}catch(e){fail(e)}},
+  async unpass(el){try{await API.unpass(el.dataset.id);toast('They’ll appear in discovery again.');refresh()}catch(e){fail(e)}},
+  async ai(el){const out=$('#ai-out');out.hidden=false;out.innerHTML='<div class="skel" style="height:14px;width:90%"></div><div class="skel" style="height:14px;width:76%"></div><div class="skel" style="height:14px;width:60%"></div>';
+    document.querySelectorAll('[data-act=ai]').forEach(b=>b.disabled=true);
+    try{const r=await runAI(el.dataset.kind,el.dataset.id);const lines=r.text.split('\n').map(s=>s.trim()).filter(Boolean);const bullets=lines.filter(l=>/^[-•*]\s/.test(l));
+      out.innerHTML=(bullets.length?`<ul>${bullets.map(l=>`<li>${esc(l.replace(/^[-•*]\s*/,''))}</li>`).join('')}</ul>`:lines.map(l=>`<p>${esc(l)}</p>`).join(''))+`<p class="ai-src">${r.source==='ai'?'Written with AI from what’s shared on both profiles.':'Generated from what’s shared on both profiles.'} It’s a starting point, not advice. Discernment is yours.</p>`}
+    catch(e){out.innerHTML=`<p class="err">${esc(e.message)}</p>`}finally{document.querySelectorAll('[data-act=ai]').forEach(b=>b.disabled=false)}},
+  'accept-intro'(el){modal({title:`Accept the introduction with ${el.dataset.name}?`,body:'<p>When you’ve both accepted, a matchmaker opens a private conversation for the two of you. You can close it at any time.</p>',confirm:'Accept',onConfirm:async()=>{const r=await API.respondProposal(el.dataset.id,true);toast(r.status==='accepted'?'You’ve both accepted.':'Accepted. Waiting for the other response.');refresh()}})},
+  'decline-intro'(el){modal({title:`Decline this introduction?`,body:`<p>${esc(el.dataset.name)} will only be told that the introduction closed. This can’t be undone.</p>`,confirm:'Decline',danger:true,onConfirm:async()=>{await API.respondProposal(el.dataset.id,false);toast('Introduction closed.');refresh()}})},
+  'end-intro'(el){modal({title:`Close your introduction with ${el.dataset.name}?`,body:`<p>The conversation becomes read-only and ${esc(el.dataset.name)} is told it has closed. You can add a private note for your matchmaker.</p><div class="field"><label for="end-reason" class="small"><b>Note to matchmaker</b> <span class="opt">· optional, private</span></label><textarea id="end-reason" maxlength="400"></textarea></div>`,confirm:'Close introduction',danger:true,onConfirm:async ov=>{await API.endConnection(el.dataset.id,ov.querySelector('#end-reason').value);toast('Introduction closed.');go('connections')}})},
+  report(el){modal({title:`Report a concern about ${el.dataset.name}`,body:`<p class="small muted">Only administrators see reports. ${esc(el.dataset.name)} isn’t told who reported.</p><div class="field"><label for="rep-reason" class="small"><b>What happened?</b></label><textarea id="rep-reason" maxlength="1000"></textarea></div><label class="switch small"><input type="checkbox" id="rep-block"><span>Also block ${esc(el.dataset.name)}. You won’t see each other, and any introduction closes.</span></label>`,confirm:'Send report',
+    onConfirm:async ov=>{const block=ov.querySelector('#rep-block').checked;await API.report(el.dataset.id,ov.querySelector('#rep-reason').value,block);toast('Report sent. Thank you.');if(block)go(S.user.role==='user'?'discover':'mm')}})},
+  'delete-account'(){modal({title:'Delete your account?',body:`<p>This permanently removes your profile, criteria, interests and the messages you sent. Open introductions will close. This can’t be undone.</p><div class="field"><label for="del-confirm" class="small"><b>Type your email to confirm</b></label><input id="del-confirm" type="email" autocomplete="off"></div>`,confirm:'Delete everything',danger:true,onConfirm:async ov=>{await API.deleteMyAccount(ov.querySelector('#del-confirm').value);S.user=null;toast('Your account and data were deleted.');go('auth')}})},
+  async 'read-all'(){await API.markNotifsRead();refresh()},
+  async 'mm-approve'(el){try{await API.approveProfile(el.dataset.id);toast(`${el.dataset.name}’s profile is approved.`);refresh()}catch(e){fail(e)}},
+  'mm-changes'(el){modal({title:`Request changes from ${el.dataset.name}`,body:`<p class="small muted">${esc(el.dataset.name)} will see this note on their profile.</p><div class="field"><label for="chg-note" class="small"><b>What should change?</b></label><textarea id="chg-note" maxlength="800"></textarea></div>`,confirm:'Send request',onConfirm:async ov=>{await API.requestChanges(el.dataset.id,ov.querySelector('#chg-note').value);toast('Change request sent.');refresh()}})},
+  'mm-advance'(el){const to=el.dataset.to,names=el.dataset.names;
+    const cfg={reviewing:{t:'Start reviewing this introduction?',b:`<p>${esc(names)} will be told a matchmaker is reviewing it.</p>`,c:'Start review'},
+      proposed:{t:'Propose the introduction',b:`<p class="small muted">Both members read this note and decide whether to accept. Keep it factual and warm. Describe what they share, not whether they should marry.</p><div class="field"><label for="prop-note" class="small"><b>Introduction note</b></label><textarea id="prop-note" maxlength="800"></textarea></div>`,c:'Send proposal'},
+      connected:{t:'Open their conversation?',b:`<p>${esc(names)} have both accepted. This opens a private conversation that only the two of them can read.</p>`,c:'Connect'},
+      closed:{t:'Close this introduction?',b:`<p>Both members are told it has closed. Add a private reason for the team.</p><div class="field"><label for="close-note" class="small"><b>Private note</b> <span class="opt">· optional</span></label><textarea id="close-note" maxlength="800"></textarea></div>`,c:'Close',d:true}}[to];
+    modal({title:cfg.t,body:cfg.b,confirm:cfg.c,danger:cfg.d,onConfirm:async ov=>{const n=ov.querySelector('textarea');await API.advanceIntro(el.dataset.id,to,n?n.value:'');toast(`Moved to ${STATUS_LABEL[to]}.`);refresh()}})},
+  'user-status'(el){const to=el.dataset.to;modal({title:`${to==='suspended'?'Suspend':'Reactivate'} ${el.dataset.name}?`,body:to==='suspended'?'<p>They’ll be signed out, removed from discovery, and any open introductions will close.</p>':'<p>They’ll be able to sign in again.</p>',confirm:to==='suspended'?'Suspend':'Reactivate',danger:to==='suspended',onConfirm:async()=>{await API.setUserStatus(el.dataset.id,to);toast(to==='suspended'?'Account suspended.':'Account reactivated.');refresh()}})},
+  async 'report-resolve'(el){try{await API.resolveReport(el.dataset.id,el.dataset.to);toast('Report updated.');refresh()}catch(e){fail(e)}},
+  'reset-demo'(){modal({title:'Reset all demo data?',body:'<p>Every change made in this browser will be replaced with the original fictional data.</p>',confirm:'Reset',danger:true,onConfirm:async()=>{await API.resetDemo();S.user=null;toast('Demo data restored.');go('auth')}})}
+};
+const CHANGE={
+  filter(el){const k=el.dataset.k;S.filters[k]=el.type==='checkbox'?el.checked:el.value;go('discover',{}, {keep:true})},
+  async vis(el){try{await API.setVisibility(el.dataset.k,el.value);toast('Visibility updated.')}catch(e){fail(e);refresh()}},
+  async hidden(el){try{const h=await API.setHidden(el.checked);toast(h?'Your profile is hidden from discovery.':'Your profile is visible in discovery again.');refresh()}catch(e){fail(e)}},
+  async stage(el){try{await API.setProgress(el.dataset.id,el.value);toast('Stage updated.')}catch(e){fail(e)}},
+  async role(el){try{await API.setRole(el.dataset.id,el.value);toast('Role updated.');refresh()}catch(e){fail(e);refresh()}},
+  async setting(el){try{S.settings=await API.saveSettings({[el.dataset.k]:el.checked});toast('Setting saved.')}catch(e){fail(e);refresh()}}
+};
+async function saveStepThen(next){
+  const form=document.querySelector('form[data-form=wiz],form[data-form=criteria]');
+  const target=next==null?'me':'setup';
+  if(!form){if(next==null)return go('me');S.wiz.errors={};return go('setup',{step:next})}
+  try{await saveForm(form);S.wiz.errors={};next==null?(toast('Saved.'),go(target)):go('setup',{step:next})}
+  catch(e){if(e.fields&&next!==null&&next<+((form.dataset.step)||5)){S.wiz.errors={};go('setup',{step:next});return}if(e.fields){S.wiz.errors=e.fields;refresh()}fail(e)}
+}
+async function saveForm(form){
+  if(form.dataset.form==='criteria'){const c=readCriteria(form);await API.saveMyCriteria(c.items,c.note,c.share);return}
+  const{patch,vis,fields}=readWizard(form);
+  const errs=validateFields(fields,{...S.wiz.data,...patch});if(Object.keys(errs).length){const e=new ApiError('Some answers need attention.','validation');e.fields=errs;throw e}
+  await API.saveMyProfile(patch,vis,+form.dataset.step+1);
+}
+const FORMS={
+  async login(form){const fd=new FormData(form);const email=fd.get('email');try{await API.login(email,fd.get('password'));await boot()}catch(e){go('auth',{mode:'signin',errors:{_:e.message},values:{email}})}},
+  async register(form){const fd=new FormData(form);const v={firstName:fd.get('firstName'),email:fd.get('email'),password:fd.get('password'),gender:fd.get('gender'),agree:!!fd.get('agree')};
+    try{await API.register(v);await refreshUser();toast('Welcome. Let’s build your profile.');go('setup',{step:0})}catch(e){go('auth',{mode:'register',errors:e.fields||{_:e.message},values:{...v,password:''}});if(!e.fields)fail(e)}},
+  async wiz(form){const step=+form.dataset.step;try{await saveForm(form);S.wiz.errors={};go('setup',{step:step+1})}catch(e){if(e.fields){S.wiz.errors=e.fields;await go('setup',{step},{keep:true})}fail(e)}},
+  async criteria(form){try{await saveForm(form);S.wiz.errors={};go('setup',{step:6})}catch(e){if(e.fields){S.wiz.errors=e.fields;await go('setup',{step:5},{keep:true})}fail(e)}},
+  async send(form){const ta=form.querySelector('textarea'),btn=form.querySelector('button');const text=ta.value;if(!text.trim())return;btn.disabled=true;
+    try{const m=await API.send(form.dataset.id,text);ta.value='';const box=$('#msgs');const empty=box.querySelector('.sysmsg:last-child');if(empty&&/No messages yet/.test(empty.textContent))empty.remove();box.insertAdjacentHTML('beforeend',`<div class="msg mine">${esc(m.text)}<time>${clock(m.at)}</time></div>`);box.lastElementChild.scrollIntoView({block:'end'})}catch(e){fail(e)}finally{btn.disabled=false;ta.focus()}},
+  async note(form){const t=form.querySelector('textarea').value;try{await API.addNote(form.dataset.subject,t);toast('Note added.');refresh()}catch(e){fail(e)}}
+};
+
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]');
+  if(g&&!g.disabled){e.preventDefault();let p={};try{p=g.dataset.p?JSON.parse(g.dataset.p):{}}catch(_){}if(S.view!==g.dataset.go||g.dataset.go==='person')S.prev={view:S.view,params:S.params};
+    if(S.view==='setup'&&g.dataset.go!=='setup'&&document.querySelector('form[data-form=wiz],form[data-form=criteria]')&&g.closest('.main')){const form=document.querySelector('form[data-form=wiz],form[data-form=criteria]');saveForm(form).catch(()=>{}).finally(()=>go(g.dataset.go,p));return}
+    go(g.dataset.go,p);return}
+  const a=e.target.closest('[data-act]');if(a&&!a.disabled&&ACT[a.dataset.act]){e.preventDefault();Promise.resolve(ACT[a.dataset.act](a,e)).catch(fail)}
+});
+document.addEventListener('change',e=>{const c=e.target.closest('[data-change]');if(c&&CHANGE[c.dataset.change])CHANGE[c.dataset.change](c)});
+document.addEventListener('submit',e=>{const f=e.target.closest('[data-form]');if(f&&FORMS[f.dataset.form]){e.preventDefault();FORMS[f.dataset.form](f)}});
+
+async function refreshUser(){S.user=await API.session();S.settings=S.user?await API.settings():null}
+async function boot(){
+  await refreshUser();
+  if(!S.user)return go('auth');
+  if(S.user.role==='user'){if(S.user.profileStatus==='draft')return go('setup',{step:Math.min(S.user.step||0,6)});return go('discover')}
+  return go(S.user.role==='admin'?'admin':'mm');
+}
+(async()=>{app.innerHTML=`<main class="main">${skeleton()}</main>`;try{await Store.init();await boot()}catch(e){console.error(e);app.innerHTML=`<main class="main">${errorState(e)}</main>`}})();
+})();
+</script>
+
+</body>
+</html>
